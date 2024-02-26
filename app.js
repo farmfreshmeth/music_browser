@@ -7,7 +7,8 @@ var logger = require("morgan");
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
-var itemsRouter = require("./routes/items");
+var releasesRouter = require("./routes/releases");
+var releaseRouter = require("./routes/release");
 
 require('dotenv').config();
 
@@ -24,8 +25,15 @@ app.use(cookieParser());
 app.use(lessMiddleware(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", foldersRouter);
-app.use("/items", itemsRouter);
+app.use(foldersRouter);
+app.use(releasesRouter);
+app.use(releaseRouter);
+
+// folder_id: folder_name
+app.locals.folders = {
+  0: "All",
+  1: "Uncategorized"
+};
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

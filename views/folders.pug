@@ -8,7 +8,7 @@ block content
   each folder in folders
     .pure-g
       .pure-u-2-3
-        a(href=folder.resource_url) #{folder.name}
+        a(href="/releases/" + folder.id) #{folder.name}
       .pure-u-1-3 #{folder.count}
 
   script(src="/javascripts/folders.js")
