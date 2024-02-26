@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var lessMiddleware = require("less-middleware");
 var logger = require("morgan");
 
+// Container page routes
 var foldersRouter = require("./routes/folders");
 var itemsRouter = require("./routes/items");
 

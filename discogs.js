@@ -2,6 +2,8 @@
   Discogs.com API client
 */
 
+// possibly the wrong approach b/c of async
+
 const https = require('https');
 
 var Discogs = function() {
@@ -21,10 +23,8 @@ var Discogs = function() {
   };
 }
 
-Discogs.prototype.getFolders = function() {
+Discogs.prototype.getFolders = function(callback) {
   this.https_options.path = this.basePath + this.endpoints.folders;
-
-  console.log(this);
 
   var req = https.request(this.https_options, (res) => {
     if (res.statusCode !== 200) {
@@ -40,10 +40,14 @@ Discogs.prototype.getFolders = function() {
     });
 
     res.on('close', () => {
-      console.log('Retrieved all data');
-      console.log(JSON.parse(data));
+      callback(data);
     });
   });
+
+  req.on('error', (e) => {
+    console.error(e);
+  });
+  req.end();
 };
 
 module.exports = Discogs;
