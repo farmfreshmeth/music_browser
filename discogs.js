@@ -2,8 +2,6 @@
   Discogs.com API client
 */
 
-// possibly the wrong approach b/c of async
-
 const https = require('https');
 
 var Discogs = function() {
@@ -17,7 +15,73 @@ var Discogs = function() {
       "Authorization": "Discogs token=" + process.env.DISCOGS_PERSONAL_ACCESS_TOKEN
     }
   };
+  this.folders = undefined;
+  this.fields = undefined;
  }
+
+// folders json
+// [
+//   {
+//     "id": 0,
+//     "count": 23,
+//     "name": "All",
+//     "resource_url": "https://api.discogs.com/users/example/collection/folders/0"
+//   },
+//   {
+//     "id": 1,
+//     "count": 20,
+//     "name": "Uncategorized",
+//     "resource_url": "https://api.discogs.com/users/example/collection/folders/1"
+//   }
+// ]
+Discogs.prototype.getFolders = function(callback) {
+    this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders";
+    this.sendRequest(callback);
+};
+
+// custom_fields json
+// [
+//     {
+//       "name": "Media",
+//       "options": [
+//         "Mint (M)",
+//         "Near Mint (NM or M-)",
+//         "Very Good Plus (VG+)",
+//         "Very Good (VG)",
+//         "Good Plus (G+)",
+//         "Good (G)",
+//         "Fair (F)",
+//         "Poor (P)"
+//       ],
+//       "id": 1,
+//       "position": 1,
+//       "type": "dropdown",
+//       "public": true
+//     },...
+Discogs.prototype.getCustomFields = function(callback) {
+  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/fields";
+  this.sendRequest(callback);
+}
+
+// Called in app.js
+Discogs.prototype.preload = function() {
+  this.getFolders((folders) => {
+    this.folders = folders;
+    this.getCustomFields((fields) => {
+      this.fields = fields;
+    });
+  });
+};
+
+Discogs.prototype.getReleases = function(folder_id, callback) {
+  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders/" + folder_id + "/releases"
+  this.sendRequest(callback);
+};
+
+Discogs.prototype.getRelease = function(release_id, callback) {
+  this.https_options.path = '/releases/' + release_id;
+  this.sendRequest(callback);
+};
 
 // Common to all endpoints
 Discogs.prototype.sendRequest = function(callback) {
@@ -43,21 +107,6 @@ Discogs.prototype.sendRequest = function(callback) {
     console.error(e);
   });
   req.end();
-}
-
-Discogs.prototype.getFolders = function(callback) {
-  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders";
-  this.sendRequest(callback);
-};
-
-Discogs.prototype.getReleases = function(folder_id, callback) {
-  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders/" + folder_id + "/releases"
-  this.sendRequest(callback);
-};
-
-Discogs.prototype.getRelease = function(release_id, callback) {
-  this.https_options.path = '/releases/' + release_id;
-  this.sendRequest(callback);
 };
 
 module.exports = Discogs;

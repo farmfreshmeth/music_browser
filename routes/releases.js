@@ -14,7 +14,7 @@ router.get('/releases/:folder_id', function(req, res, next) {
     res.render('releases', {
       pagination: data["pagination"],
       releases: data["releases"],
-      folder_name: req.app.locals.folders[req.folder_id]
+      folder_name: req.app.locals.discogs.folders[req.folder_id]
     });
   });
 });

@@ -4,6 +4,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var lessMiddleware = require("less-middleware");
 var logger = require("morgan");
+var Discogs = require("./discogs.js");
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
@@ -29,11 +30,9 @@ app.use(foldersRouter);
 app.use(releasesRouter);
 app.use(releaseRouter);
 
-// folder_id: folder_name
-app.locals.folders = {
-  0: "All",
-  1: "Uncategorized"
-};
+// global Discogs object, prefetches dictionary data
+app.locals.discogs = new Discogs();
+app.locals.discogs.preload();
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
