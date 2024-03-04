@@ -5,11 +5,11 @@ block content
   h1= title
   p Welcome to #{title}
 
-  each folder in folders['folders']
+  each folder in folders
     .pure-g
       .pure-u-2-3
         a(href="/releases/" + folder['id']) #{folder['name']}
       .pure-u-1-3 #{folder['count']}
 
-  pre #{folders}
+  pre #{JSON.stringify(folders, null, 2)}
   script(src="/javascripts/folders.js")

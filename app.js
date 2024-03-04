@@ -30,10 +30,6 @@ app.use(foldersRouter);
 app.use(releasesRouter);
 app.use(releaseRouter);
 
-// global Discogs object, prefetches dictionary data
-app.locals.discogs = new Discogs();
-app.locals.discogs.preload();
-
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
@@ -49,5 +45,9 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("error");
 });
+
+// global Discogs object, prefetches dictionary data
+app.locals.discogs = new Discogs();
+app.locals.discogs.preload();
 
 module.exports = app;
