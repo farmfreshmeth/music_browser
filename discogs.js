@@ -63,16 +63,24 @@ Discogs.prototype.getFolder = function(folder_id) {
   return folder_arr[0];
 }
 
-Discogs.prototype.getReleases = async function(folder_name) {
+Discogs.prototype.getReleases = async function(search_str, search_target) {
   var results = [];
   await storage.forEach(async (release) => {
-    if (release.value.custom_fields &&
-        release.value.custom_fields.folder == folder_name) {
+    if (
+      (search_target == "folder" && release.value.custom_fields
+          && release.value.custom_fields.folder == search_str)
+        || (search_target == "artist" && release.value.artists_sort == search_str)
+        || (search_target == "title" && release.value.title == search_str)
+      ) {
       results.push(release.value);
     }
   });
   return results;
 };
+
+Discogs.prototype.search = async function(search_term) {
+  return [];
+}
 
 Discogs.prototype.downloadReleases = function(folder_id, callback) {
   this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders/" + folder_id + "/releases"

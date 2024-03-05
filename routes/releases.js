@@ -1,12 +1,13 @@
 var express = require('express');
 var router = express.Router();
 
-router.get('/releases/:encoded_name', async function(req, res, next) {
-  let folder_name = decodeURIComponent(req.params["encoded_name"]);
-  let releases = await req.app.locals.discogs.getReleases(folder_name);
+// GET /releases?search_str=10%20Classic%20Rock&search_target=folder
+router.get('/releases', async function(req, res, next) {
+  let releases = await req.app.locals.discogs.getReleases(req.query.search_str, req.query.search_target);
   res.render('releases', {
     releases: releases,
-    folder: folder_name
+    search_str: req.query.search_str,
+    search_target: req.query.search_target
   });
 });
 

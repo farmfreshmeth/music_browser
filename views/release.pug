@@ -1,6 +1,8 @@
 extends layout
 
 block content
+  a(href="/") Home
+
   p #{release['title']}
   img(src=release['images'][0]['uri'])
   pre #{JSON.stringify(release, null, 2)}
