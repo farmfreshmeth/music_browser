@@ -18,7 +18,6 @@ const Discogs = require("../discogs.js");
 const discogs = new Discogs();
 const fs = require("fs");
 const { parse } = require("csv-parse");
-const export_file = "./data/" + process.env.EXPORT_FILE;
 const storage = require("node-persist");
 const wait_ms = 1050; // even though it's 60/min, keep getting 429s
 
@@ -36,11 +35,6 @@ const downloadExport = async function() {
   // TODO
   return filepath;
 }
-
-// 02 Classic Rock
-const parseFolder = function (folder_name) {
-  return [folder_name.slice(0, 2), folder_name.slice(4)];
-};
 
 const getPrimaryImage = function (images_arr) {
   for (i in images_arr) {
@@ -89,11 +83,18 @@ function fetchLyrics(release_id_str) {
 
 /* script */
 
-if (!process.argv.includes("--no-flush")) { flush(); } // wipe db for good measure
+// flush db
+if (!process.argv.includes("--no-flush")) { flush(); }
 
-export_file = discogs.downloadExport();
+// set export_file
+let export_file = "";
+if (!process.argv.includes("--no-export")) {
+  export_file = discogs.downloadExport();
+} else {
+  export_file = "./data/" + process.env.EXPORT_FILE;
+}
 
-// Parse Discogs collection CSV download
+// parse export, join to release & persist
 var collection = [];
 fs.createReadStream(export_file)
   .pipe(parse({ delimiter: ",", from_line: 2 }))

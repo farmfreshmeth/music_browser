@@ -6,17 +6,14 @@ block content
   p Welcome to #{title}
 
   h3 Search
-  form(action='/releases', method='GET')
-    div
-      input(name='search_str', value='search...', type='text')
-    div
+  form.pure-form(action='/releases', method='GET')
+    input(name='search_str', value='', placeholder="search..." type='text')
+    label.pure-radio(for='artist') artist
       input(id='artist' name='search_target', value='artist', type='radio' checked)
-      label(for='artist') artist
-    div
+    label.pure-radio(for='title') title
       input(id='title' name='search_target', value='title', type='radio')
-      label(for='title') title
     div
-      input#search(value='search', type='submit')
+      input.pure-button.pure-button-primary#search(value='search', type='submit')
 
   div
     h3 Folders

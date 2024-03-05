@@ -32,10 +32,11 @@ var Discogs = function() {
   callback();
 }
 
-// TODO downloaExport
-  // initiate new export
-  // wait for finished signal
-  // download
+Discogs.prototype.requestExport = async function() {}
+
+Discogs.prototype.checkExport = async function() {}
+
+Discogs.prototype.downloadExport = async function() {}
 
 // TODO change to downloadFolders
 Discogs.prototype.getFolders = function(callback) {
