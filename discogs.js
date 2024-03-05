@@ -85,8 +85,8 @@ Discogs.prototype.getRelease = async function(release_id_str, callback) {
 }
 
 Discogs.prototype.downloadRelease = function(release_id, callback) {
-  // https_options.path = '/releases/' + release_id;
-  // this.sendRequest(callback);
+  https_options.path = '/releases/' + release_id;
+  this.sendRequest(callback);
 };
 
 // Common to all endpoints
