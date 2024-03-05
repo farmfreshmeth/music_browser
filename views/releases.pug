@@ -1,17 +1,18 @@
 extends layout
 
 block content
-  h1 #{folder['name']}
+  h1 #{folder}
   p #{JSON.stringify(pagination)}
 
   each release in releases
     .pure-g
       .pure-u-1-3
-        img(src=release['basic_information']['thumb'])
+        //- img(src=release['thumb'])
       .pure-u-1-3
-        div #{release['basic_information']['artists'][0]['name']}
-        a(href="/release/" + release['id']) #{release['basic_information']['title']}
-        each note in release['notes']
-          div #{note['field_id']} #{note['value']}
+        div #{release['artists_sort']}
+        a(href="/release/" + release['id']) #{release['title']}
       .pure-u-1-3
-        pre #{JSON.stringify(release, null, 2)}
+        //- pre #{JSON.stringify(release, null, 2)}
+
+  pre
+    #{JSON.stringify(releases, null, 2)}

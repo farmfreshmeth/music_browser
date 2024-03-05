@@ -32,6 +32,11 @@ const persist = async (key, value) => {
   await storage.setItem(key, value);
 };
 
+const downloadExport = async function() {
+  // TODO
+  return filepath;
+}
+
 // 02 Classic Rock
 const parseFolder = function (folder_name) {
   return [folder_name.slice(0, 2), folder_name.slice(4)];
@@ -49,7 +54,7 @@ const delay = async (ms = 1000) =>
 // Build custom collection objects
 const downloadReleaseData = async (collection) => {
   for (let i in collection) {
-    discogs.getRelease(collection[i][7], (release) => {
+    discogs.downloadRelease(collection[i][7], (release) => {
       persist(String(release["id"]), release);
       console.log(
         [i, collection[i][0], collection[i][2], collection[i][1]].join(" | ")
@@ -85,6 +90,8 @@ function fetchLyrics(release_id_str) {
 /* script */
 
 if (!process.argv.includes("--no-flush")) { flush(); } // wipe db for good measure
+
+export_file = discogs.downloadExport();
 
 // Parse Discogs collection CSV download
 var collection = [];

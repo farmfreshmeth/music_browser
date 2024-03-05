@@ -48,6 +48,9 @@ app.use(function (err, req, res, next) {
 
 // global Discogs object, prefetches dictionary data
 app.locals.discogs = new Discogs();
-app.locals.discogs.preload();
+app.locals.discogs.mountStorage(async () => {
+  app.locals.discogs.buildFolderListFromCollection();
+});
+
 
 module.exports = app;
