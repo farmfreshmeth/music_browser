@@ -1,27 +1,28 @@
 extends layout
 
+block header
+  .hero-img
+    img.logo.logo-lg
+
 block content
+  .pure-g(style="padding-top: 20px")
+    form.pure-form(action='/releases', method='GET')
+      input(name='search_str', value='', placeholder="search..." type='text')
+      fieldset
+        label.pure-radio(for='artist')
+          input(id='artist' name='search_target', value='artist', type='radio' checked)
+          .radio-label artist
+        label.pure-radio(for='title')
+          input(id='title' name='search_target', value='title', type='radio')
+          .radio-label title
+        input.pure-button.pure-button-primary#search(value='search', type='submit')
 
-  h1= title
-  p Welcome to #{title}
+      div
+        h3 Browse Folders
+        div crate section [count]
+        each folder in folders
+          .pure-u-1.pure-u-md-1-2.pure-u-lg-1-3
+            a.folder-tile(
+              href="/releases?search_str=" + folder["encoded_name"] + "&search_target=folder") #{folder['name']} [#{folder['count']}]
 
-  h3 Search
-  form.pure-form(action='/releases', method='GET')
-    input(name='search_str', value='', placeholder="search..." type='text')
-    label.pure-radio(for='artist') artist
-      input(id='artist' name='search_target', value='artist', type='radio' checked)
-    label.pure-radio(for='title') title
-      input(id='title' name='search_target', value='title', type='radio')
-    div
-      input.pure-button.pure-button-primary#search(value='search', type='submit')
-
-  div
-    h3 Folders
-    each folder in folders
-      .pure-g
-        .pure-u-2-3
-          a(href="/releases?search_str=" + folder["encoded_name"] + "&search_target=folder") #{folder['name']}
-        .pure-u-1-3 #{folder['count']}
-
-  pre #{JSON.stringify(folders, null, 2)}
   script(src="/javascripts/folders.js")
