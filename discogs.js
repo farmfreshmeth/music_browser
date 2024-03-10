@@ -71,7 +71,7 @@ Discogs.prototype.getReleases = async function(search_str, search_target) {
       (search_target == "folder" && release.value.custom_fields
           && release.value.custom_fields.folder == search_str)
         || (search_target == "artist" && release.value.artists_sort == search_str)
-        || (search_target == "title" && release.value.title == search_str)
+        || (search_target == "release_title" && release.value.title == search_str)
       ) {
       results.push(release.value);
     }

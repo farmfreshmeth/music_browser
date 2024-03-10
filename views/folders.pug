@@ -12,17 +12,17 @@ block content
         label.pure-radio(for='artist')
           input(id='artist' name='search_target', value='artist', type='radio' checked)
           .radio-label artist
-        label.pure-radio(for='title')
-          input(id='title' name='search_target', value='title', type='radio')
-          .radio-label title
+        label.pure-radio(for='release_title')
+          input(id='release_title' name='search_target', value='release_title', type='radio')
+          .radio-label release title
         input.pure-button.pure-button-primary#search(value='search', type='submit')
 
       div
-        h3 Browse Folders
-        div crate section [count]
+        h3 Browse Crates & Folders
         each folder in folders
-          .pure-u-1.pure-u-md-1-2.pure-u-lg-1-3
-            a.folder-tile(
-              href="/releases?search_str=" + folder["encoded_name"] + "&search_target=folder") #{folder['name']} [#{folder['count']}]
+          if !["All", "Uncategorized"].includes(folder["name"])
+            .pure-u-1.pure-u-md-1-2.pure-u-lg-1-3
+              a.folder-tile(
+                href="/releases?search_str=" + folder["encoded_name"] + "&search_target=folder") #{folder['name']}
 
   script(src="/javascripts/folders.js")
