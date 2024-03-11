@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 var createError = require("http-errors");
 var express = require("express");
@@ -10,17 +10,17 @@ if (process.env.NODE_ENV == "development") {
   var lessConfig = {
     render: { compress: false },
     force: true,
-    debug: true
+    debug: true,
   };
 } else {
   var lessConfig = {
-    render: { compress: true }
+    render: { compress: true },
   };
 }
 
-var lessConfig = {};
 var logger = require("morgan");
 var Discogs = require("./discogs.js");
+var DataBuilder = require("./data_builder.js");
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
@@ -65,5 +65,12 @@ app.locals.discogs = new Discogs();
 app.locals.discogs.mountStorage(async () => {
   app.locals.discogs.buildFolderListFromCollection();
 });
+
+// schedule db rebuild
+var dataBuilder = new DataBuilder();
+const schedule = require("node-schedule");
+let thurs = "5 1 12 * * 4";
+let min = "5 * * * * *";
+const rebuildDB = schedule.scheduleJob(min, dataBuilder.rebuildDB); // every Thu @ 12:01:05
 
 module.exports = app;
