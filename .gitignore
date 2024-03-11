@@ -64,5 +64,5 @@ typings/
 *.csv
 *.zip
 package-lock.json
-/.node-persist
+.node-persist/storage/
 
