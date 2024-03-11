@@ -15,10 +15,12 @@ const fs = require("fs");
 const { parse } = require("csv-parse");
 const storage = require("node-persist");
 const wait_ms = 1050; // even though it's 60/min, keep getting 429s
+const Mailer = require("./mailer.js");
 
-var DataBuilder = function () {
-  this.log = [];
-};
+var mailer = new Mailer();
+var log = [];
+
+var DataBuilder = function () {};
 
 DataBuilder.prototype.rebuildDB = async function () {
   // request export
@@ -30,7 +32,8 @@ DataBuilder.prototype.rebuildDB = async function () {
     // merge custom fields & lyrics
     // persist into temporary space
   // cleanup: remove collection key, remove old data, promote new data, send log via email
-  console.log("rebuildDB");
+  log.push("DB rebuilt");
+  mailer.send("DataBuilder report", log.join("\n"));
 };
 
 module.exports = DataBuilder;
