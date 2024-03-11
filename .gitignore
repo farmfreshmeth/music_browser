@@ -65,4 +65,4 @@ typings/
 *.zip
 package-lock.json
 .node-persist/storage/
-
+data/
