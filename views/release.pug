@@ -1,0 +1,31 @@
+extends layout
+
+block content
+
+  .pure-g
+    .pure-u-1.pure-u-sm-2-5
+      .release-artist #{release['artists'][0]['name']}
+      .release-title #{release['title']}
+      img.pure-img(src=release['images'][0]['uri'])
+
+      .release-details
+        div released: #{release['year']}
+        div location: #{release['custom_fields']['folder']}
+        div media condition: #{release['custom_fields']['media_condition']}
+
+      .tracklist
+        table.pure-table
+          thead
+            tr
+              th #
+              th track
+              th min
+          tbody
+            each track in release['tracklist']
+              tr
+                td #{track['position']}
+                td #{track['title']}
+                td #{track['duration']}
+
+      div(style="margin-top: 20px;")
+        a.pure-button.pure-button-secondary(href=release['uri']) view on Discogs

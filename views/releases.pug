@@ -1,0 +1,27 @@
+extends layout
+
+block content
+
+  .search-target #{search_target} search
+  .search-str #{search_str}
+  hr
+
+  each release in releases
+    .pure-g
+      .pure-u-1-1.pure-u-sm-1-5
+        img.pure-img.thumb(src=release['thumb'])
+      .pure-u-1-1.pure-u-sm-2-5(style="padding-top: 10px;")
+        .release-artist #{release['artists_sort']}
+        .release-title
+          a(href="/release/" + release['id']) #{release['title']}
+        div location: #{release['custom_fields']['folder']}
+      .pure-u-1-1.pure-u-sm-2-5(style="margin-top: 20px")
+        each track in release['tracklist']
+          .track-sm
+            .track-position #{track['position']}
+            .track-title #{track['title']}
+            .track-duration #{track['duration']}
+
+    .pure-g
+      .pure-u-1
+        hr
