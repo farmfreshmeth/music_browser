@@ -1,5 +1,4 @@
 /*
-
   collection.js defines Collection class to handle
     app interaction with the collection in
     local storage.  (wrapper for node-persist)
@@ -17,11 +16,6 @@ Collection.prototype.length = async function () {
   return await this.storage.length();
 };
 
-Collection.prototype.release = async function (release_id, callback) {
-  var release = await this.storage.getItem(release_id);
-  callback(release);
-};
-
 Collection.prototype.folders = async function () {
   let uniq_folders = await this.storage.valuesWithKeyMatch(/folder/);
   uniq_folders = uniq_folders[0]; // do not know why it's wrapped in an array element
@@ -32,13 +26,6 @@ Collection.prototype.folders = async function () {
   }
   return uniq_folders;
 };
-
-// Collection.prototype.folder = function (folder_id) {
-//   var folder_arr = this.folders.filter((folder) => {
-//     return folder["id"] == folder_id;
-//   });
-//   return folder_arr[0];
-// };
 
 // TODO fuzzy search
 Collection.prototype.search = async function (search_str, search_target) {
@@ -57,6 +44,11 @@ Collection.prototype.search = async function (search_str, search_target) {
   return results;
 };
 
-module.exports = Collection; // singleton
+Collection.prototype.release = async function (release_id) {
+  if (typeof release_id == "number") {
+    release_id = String(release_id);
+  }
+  return await this.storage.getItem(release_id);
+};
 
-
+module.exports = Collection;
