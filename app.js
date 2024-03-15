@@ -1,11 +1,26 @@
-require("dotenv").config();
+/*
+  music_browser
+*/
 
+require("dotenv").config();
+const storage = require("node-persist");
+const Collection = require("./collection.js");
+var DataBuilder = require("./data_builder.js");
+const schedule = require("node-schedule");
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
-
 var lessMiddleware = require("less-middleware");
+var logger = require("morgan");
+
+// Container page routes
+var foldersRouter = require("./routes/folders");
+var releasesRouter = require("./routes/releases");
+var releaseRouter = require("./routes/release");
+
+var app = express();
+
 if (process.env.NODE_ENV == "development") {
   var lessConfig = {
     render: { compress: false },
@@ -18,16 +33,11 @@ if (process.env.NODE_ENV == "development") {
   };
 }
 
-var logger = require("morgan");
-var Discogs = require("./discogs.js");
-var DataBuilder = require("./data_builder.js");
-
-// Container page routes
-var foldersRouter = require("./routes/folders");
-var releasesRouter = require("./routes/releases");
-var releaseRouter = require("./routes/release");
-
-var app = express();
+// attach to collection singleton wrapper for storage
+(async () => {
+  await storage.init();
+  app.locals.collection = new Collection(storage);
+})();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -60,17 +70,16 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-// global Discogs object, prefetches dictionary data
-app.locals.discogs = new Discogs();
-app.locals.discogs.mountStorage(async () => {
-  app.locals.discogs.buildFolderListFromCollection();
-});
+// startup tasks
+app.on("listening", () => {
 
-// schedule db rebuild
-var dataBuilder = new DataBuilder();
-const schedule = require("node-schedule");
-let thurs = "5 1 12 * * 4";
-let min = "5 * * * * *";
-const rebuildDB = schedule.scheduleJob(min, dataBuilder.rebuildDB); // every Thu @ 12:01:05
+  // schedule periodic db rebuild
+  if (process.env.NODE_ENV == "production") {
+    var dataBuilder = new DataBuilder(app.locals.collection);
+    let thurs = "5 1 12 * * 4";
+    let min = "5 * * * * *"; // DEBUG
+    const rebuildDB = schedule.scheduleJob(thurs, dataBuilder.rebuildDB); // every Thu @ 12:01:05
+  };
+});
 
 module.exports = app;

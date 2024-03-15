@@ -1,13 +1,10 @@
 /*
-  Discogs.com/storage client.  https://www.discogs.com/developers/#
-
-  'get' methods use local storage.  'download' methods hit the api
-
+  Discogs.com API client
+    https://www.discogs.com/developers/#
 */
 
-const https = require("https");
-const storage = require("node-persist");
 require("dotenv").config();
+const https = require("https");
 
 let https_options = {
   hostname: "api.discogs.com",
@@ -21,17 +18,7 @@ let https_options = {
   },
 };
 
-var Discogs = function () {
-  this.token = process.env.DISCOGS_PERSONAL_ACCESS_TOKEN;
-  this.folders = [];
-  this.collection = [];
-};
-
-Discogs.prototype.mountStorage = async function (callback = () => {}) {
-  await storage.init();
-  console.log("Discogs mounted storage");
-  callback();
-};
+var Discogs = function () {};
 
 Discogs.prototype.requestExport = async function () {};
 
@@ -39,79 +26,35 @@ Discogs.prototype.checkExport = async function () {};
 
 Discogs.prototype.downloadExport = async function () {};
 
-// TODO change to downloadFolders
-Discogs.prototype.getFolders = function (callback) {
-  this.https_options.path =
+Discogs.prototype.downloadFolders = function () {
+  https_options.path =
     "/users/" + process.env.DISCOGS_USER + "/collection/folders";
-  this.sendRequest(callback);
+  this.sendRequest((data) => {
+    return data;
+  });
 };
 
-// TODO change to downloadCustomFields
-Discogs.prototype.getCustomFields = function (callback) {
-  this.https_options.path =
+Discogs.prototype.downloadCustomFields = function () {
+  https_options.path =
     "/users/" + process.env.DISCOGS_USER + "/collection/fields";
-  this.sendRequest(callback);
-};
-
-Discogs.prototype.buildFolderListFromCollection = async function () {
-  let uniq_folders = await storage.valuesWithKeyMatch(/folder/);
-  uniq_folders = uniq_folders[0]; // do not know why it's wrapped in an array element
-  for (let i in uniq_folders) {
-    uniq_folders[i]["encoded_name"] = encodeURIComponent(
-      uniq_folders[i]["name"],
-    );
-  }
-  this.folders = uniq_folders;
-};
-
-Discogs.prototype.getFolder = function (folder_id) {
-  var folder_arr = this.folders.filter((folder) => {
-    return folder["id"] == folder_id;
+  this.sendRequest((data) => {
+    return data;
   });
-  return folder_arr[0];
 };
 
-Discogs.prototype.getReleases = async function (search_str, search_target) {
-  var results = [];
-  await storage.forEach(async (release) => {
-    if (
-      (search_target == "folder" &&
-        release.value.custom_fields &&
-        release.value.custom_fields.folder == search_str) ||
-      (search_target == "artist" && release.value.artists_sort == search_str) ||
-      (search_target == "release_title" && release.value.title == search_str)
-    ) {
-      results.push(release.value);
-    }
-  });
-  return results;
+// For recording category disputes
+Discogs.prototype.setCustomFieldValue = function () {
+  // TODO
 };
 
-Discogs.prototype.search = async function (search_term) {
-  return [];
-};
-
-Discogs.prototype.downloadReleases = function (folder_id, callback) {
-  this.https_options.path =
-    "/users/" +
-    process.env.DISCOGS_USER +
-    "/collection/folders/" +
-    folder_id +
-    "/releases";
-  this.sendRequest(callback);
-};
-
-Discogs.prototype.getRelease = async function (release_id_str, callback) {
-  let release = await storage.getItem(release_id_str);
-  callback(release);
-};
-
-Discogs.prototype.downloadRelease = function (release_id, callback) {
+Discogs.prototype.downloadRelease = function (release_id) {
   https_options.path = "/releases/" + release_id;
-  this.sendRequest(callback);
+  this.sendRequest((data) => {
+    return data;
+  });
 };
 
-// Common to all endpoints
+// Common to all endpoints.  Uses callbacks, not promises
 Discogs.prototype.sendRequest = function (callback) {
   var req = https.request(https_options, (res) => {
     if (res.statusCode !== 200) {

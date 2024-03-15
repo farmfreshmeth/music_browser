@@ -3,7 +3,7 @@ var router = express.Router();
 
 // GET /releases?search_str=10%20Classic%20Rock&search_target=folder
 router.get('/releases', async function(req, res, next) {
-  let releases = await req.app.locals.discogs.getReleases(req.query.search_str, req.query.search_target);
+  let releases = await req.app.locals.collection.search(req.query.search_str, req.query.search_target);
   res.render('releases', {
     releases: releases,
     search_str: req.query.search_str,
