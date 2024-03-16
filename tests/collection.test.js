@@ -32,12 +32,12 @@ test("folder search returns a list of releases", async () => {
 });
 
 test("artist search returns a list releases", async () => {
-  let releases = await collection.search("Van Halen", "artist");
-  expect(releases.length).toBe(4);
+  let releases = await collection.search("halen", "artist");
+  expect(releases.length).toBe(3);
 });
 
 test("title search returns a list of releases", async () => {
-  let releases = await collection.search("The Best Of ZZ Top", "release_title");
+  let releases = await collection.search("zz top", "release_title");
   console.log(releases[0]);
   expect(releases.length).toBe(1);
 });

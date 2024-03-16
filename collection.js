@@ -27,16 +27,18 @@ Collection.prototype.folders = async function () {
   return uniq_folders;
 };
 
-// TODO fuzzy search
+// TODO deep search (all keys/values)
 Collection.prototype.search = async function (search_str, search_target) {
+  var regex = new RegExp(search_str, "gi");
+  console.log(regex);
   var results = [];
   await this.storage.forEach(async (release) => {
     if (
       (search_target == "folder" &&
         release.value.custom_fields &&
         release.value.custom_fields.folder == search_str) ||
-      (search_target == "artist" && release.value.artists_sort == search_str) ||
-      (search_target == "release_title" && release.value.title == search_str)
+      (search_target == "artist" && regex.exec(release.value.artists_sort)) ||
+      (search_target == "release_title" && regex.exec(release.value.title))
     ) {
       results.push(release.value);
     }

@@ -10,8 +10,24 @@
   TAKES TIME!  Cron this or dish to a worker
 */
 
-// TODO support --no-download flag
-console.log(process.argv);
+let DataBuilder = require("../data_builder.js");
+
+let env = process.argv.includes("--production") ? "production" : "test";
+let request_export = process.argv.includes("--no-export") ? false : true;
+let download = process.argv.includes("--no-download") ? false : true;
+let flush =  process.argv.includes("--no-flush") ? false : true;
+
+let opts = {
+  env: env,
+  request_export: request_export,
+  download: download,
+  flush: flush,
+};
+
+let builder = new DataBuilder(opts);
+builder.rebuildDB();
+
+/*
 
 require("dotenv").config();
 const Discogs = require("../discogs.js");
@@ -81,9 +97,12 @@ function fetchLyrics(release_id_str) {
   // TODO
 }
 
+*/
+
 /* script */
 
 // flush db
+/*
 if (!process.argv.includes("--no-flush")) { flush(); }
 
 // set export_file
@@ -110,4 +129,5 @@ fs.createReadStream(export_file)
   .on("error", function (error) {
     console.log(error.message);
   });
+*/
 

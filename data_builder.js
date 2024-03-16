@@ -10,77 +10,113 @@
 
 require("dotenv").config();
 const Discogs = require("./discogs.js");
-// const Genius = require("./genius.js");
 const discogs = new Discogs();
-// const genius = new Genius();
+const storage = require("node-persist");
+const Collection = require("./collection.js");
 const fs = require("fs");
 const { parse } = require("csv-parse");
 const Mailer = require("./mailer.js");
-var mailer = new Mailer();
-
-var log = [];
+const mailer = new Mailer();
 
 // make a loop pause to stay under api rate limit (60/min)
 const delay = async (ms = 1050) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-const requestExport = async function () {
-  console.log("requestExport");
+// opts: download: true, request_export: true, flush: true, env: "production"
+let DataBuilder = function (opts) {
+  this.opts = opts;
+  this.log = [];
 };
 
-const checkExport = async function () {
-  console.log("checkExport");
+DataBuilder.prototype.mountCollection = async function(env) {
+  let db_dir = env == "production" ? ".node-persist" : "tests/data";
+  await storage.init({ dir: db_dir });
+  this.collection = new Collection(storage);
+  this.log.push(`Mounted collection [env: ${this.opts.env}]`);
 };
 
-const downloadExport = async function () {
-  console.log("downloadExport");
+DataBuilder.prototype.requestExport = async function () {
+  this.log.push("requestExport");
 };
 
-const parseExport = function () {};
+DataBuilder.prototype.checkExport = async function () {
+  this.log.push("checkExport");
+};
 
-const persist = async function () {};
+DataBuilder.prototype.downloadExport = async function () {
+  this.log.push("downloadExport");
+};
 
-const downloadReleases = async function () {
+DataBuilder.prototype.parseExport = function () {
+
+
+  var rows = [];
+  fs.createReadStream(export_file)
+    .pipe(parse({ delimiter: ",", from_line: 2 }))
+    .on("data", function (row) {
+      collection.push(row);
+    })
+    .on("end", function () {
+      // TODO persist or pass to download?
+    })
+    .on("error", function (error) {
+      this.log.push(error.message);
+    });
+  this.log.push("parseExport");
+};
+
+DataBuilder.prototype.persist = async function () {
+  this.log.push("persist");
+};
+
+DataBuilder.prototype.downloadReleases = async function () {
   // loop with delay
+  this.log.push("downloadReleases");
 };
 
-const downloadLyrics = async function () {
-  // genius.getLyrics();
+DataBuilder.prototype.downloadLyrics = async function () {
+  // TODO genius.getLyrics();
 };
 
-const mergeData = function () {};
+DataBuilder.prototype.mergeData = function () {
+  this.log.push("mergeData");
+};
 
-const buildFolderList = function () {
+DataBuilder.prototype.buildFolderList = function () {
   // collection.buildFolderList()
+  this.log.push("buildFolderList");
 };
 
-const cleanup = async function () {
+DataBuilder.prototype.cleanup = async function () {
   // cleanup: remove collection key, remove old data, promote new data, send log via email
+
+  // respect opts.flush
+  this.log.push("clean up");
 };
 
 /* ================= main ====================== */
 
-var DataBuilder = function (collection) {
-  this.collection = collection;
-};
-
 DataBuilder.prototype.rebuildDB = async function () {
+  await this.mountCollection(this.opts.env);
+  if (this.opts.request_export) {
+    this.requestExport()
+    this.checkExport();
+    this.downloadExport();
+  };
+  this.parseExport();
+  this.persist();
+  if (this.opts.download) { this.downloadReleases() };
+  this.downloadLyrics();
+  this.mergeData();
+  this.buildFolderList();
+  this.cleanup();
 
-  console.log("dataBuilder.collection: " + this.collection);
-
-  requestExport();
-  checkExport();
-  downloadExport();
-  parseExport();
-  persist();
-  downloadReleases();
-  downloadLyrics();
-  mergeData();
-  buildFolderList();
-  cleanup();
-
-  log.push("DB rebuilt");
-  mailer.send("DataBuilder report", log.join("\n"));
+  this.log.push("DB rebuilt: " + JSON.stringify(this.opts));
+  if (this.opts.env == "production") {
+    mailer.send("DataBuilder report", this.log.join("\n"))
+  } else {
+    console.log(this.log.join("\n"));
+  };
 };
 
 module.exports = DataBuilder;
