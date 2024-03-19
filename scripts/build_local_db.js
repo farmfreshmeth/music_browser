@@ -15,7 +15,7 @@ let DataBuilder = require("../data_builder.js");
 let env = process.argv.includes("--production") ? "production" : "test";
 let request_export = process.argv.includes("--no-export") ? false : true;
 let download = process.argv.includes("--no-download") ? false : true;
-let flush =  process.argv.includes("--no-flush") ? false : true;
+let flush = process.argv.includes("--no-flush") ? false : true;
 
 let opts = {
   env: env,
@@ -23,9 +23,44 @@ let opts = {
   download: download,
   flush: flush,
 };
+let export_file = "tests/test_export.csv";
 
 let builder = new DataBuilder(opts);
-builder.rebuildDB();
+
+(async (opts) => {
+  if (opts.flush) {
+    await builder.flushDB();
+  }
+
+  await builder.mountCollection();
+
+  if (opts.request_export) {
+    let export_id = await builder.requestExport();
+    await builder.checkExport(export_id);
+    builder.export_file = await builder.downloadExport();
+  }
+
+  await builder.parseExport(export_file);
+
+  if (opts.download) {
+    let release_ids = builder.export_rows.map(function (value, index) {
+      return value[7];
+    });
+    await builder.downloadReleases(release_ids);
+  }
+
+  await builder.downloadLyrics();
+  await builder.mergeData();
+  await builder.buildFolderList();
+  await builder.cleanup();
+
+  builder.log("DB rebuilt: " + JSON.stringify(opts));
+  if (opts.env == "production") {
+    mailer.send("DataBuilder report", builder.log_details.join("\n"));
+  } else {
+    console.log(builder.log_details.join("\n"));
+  }
+})(opts);
 
 /*
 
@@ -130,4 +165,3 @@ fs.createReadStream(export_file)
     console.log(error.message);
   });
 */
-

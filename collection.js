@@ -5,6 +5,15 @@
 
     routes/views should interact with Collection,
     not Discogs or node-storage directly
+
+    storage layout is:
+    {
+      key: "folders", value: [{folder object},...],
+      key: "123456", value: {release object with custom fields},
+      key: "234567", value: {release object with custom fields},
+      ...
+    }
+    -- releases keys are all numeric
 */
 
 // pass an initialized node-persist storage object to constructor
@@ -12,25 +21,25 @@ var Collection = function (storage) {
   this.storage = storage;
 };
 
+// count only release objects
 Collection.prototype.length = async function () {
-  return await this.storage.length();
+  let releases = await this.releases();
+  return releases.length;
+};
+
+// return just the releases objects
+Collection.prototype.releases = async function () {
+  let obj = await this.storage.valuesWithKeyMatch(/^\d+$/); // numeric keys
+  return Array.from(obj);
 };
 
 Collection.prototype.folders = async function () {
-  let uniq_folders = await this.storage.valuesWithKeyMatch(/folder/);
-  uniq_folders = uniq_folders[0]; // do not know why it's wrapped in an array element
-  for (let i in uniq_folders) {
-    uniq_folders[i]["encoded_name"] = encodeURIComponent(
-      uniq_folders[i]["name"],
-    );
-  }
-  return uniq_folders;
+  return await this.storage.getItem("folders");
 };
 
 // TODO deep search (all keys/values)
 Collection.prototype.search = async function (search_str, search_target) {
   var regex = new RegExp(search_str, "gi");
-  console.log(regex);
   var results = [];
   await this.storage.forEach(async (release) => {
     if (

@@ -11,18 +11,19 @@ beforeEach (async () => {
 });
 
 test("constructor mounts storage", async () => {
-  expect(await collection.length()).toBe(42);
+  expect(await collection.length()).toBe(48);
 });
 
 test("folders() returns folder list", async () => {
   let folders = await collection.folders();
-  expect(folders.length).toBe(42);
+  expect(folders.length).toBe(17);
   expect(folders[0]).toStrictEqual({
-    "count": 512,
-    "encoded_name": "All",
-    "id": 0,
-    "name": "All",
-    "resource_url": "https://api.discogs.com/users/bGromley/collection/folders/0",
+    "09 Rock & Roll": {
+      "crate": 9,
+      "encoded_name": "09%20Rock%20%26%20Roll",
+      "name": "09 Rock & Roll",
+      "section": "Rock & Roll",
+    },
   });
 });
 
@@ -32,13 +33,12 @@ test("folder search returns a list of releases", async () => {
 });
 
 test("artist search returns a list releases", async () => {
-  let releases = await collection.search("halen", "artist");
-  expect(releases.length).toBe(3);
+  let releases = await collection.search("police", "artist");
+  expect(releases.length).toBe(5);
 });
 
 test("title search returns a list of releases", async () => {
-  let releases = await collection.search("zz top", "release_title");
-  console.log(releases[0]);
+  let releases = await collection.search("argybargy", "release_title");
   expect(releases.length).toBe(1);
 });
 
@@ -48,13 +48,13 @@ test("empty search returns an empty list", async () => {
 });
 
 test("release() returns a single release", async () => {
-  let release = await collection.release("766302");
-  expect(release.title).toBe("The Best Of ZZ Top");
+  let release = await collection.release("1818184");
+  expect(release.title).toBe("Argybargy");
 });
 
 test("release() handles number search_str", async() => {
-  let release = await collection.release(766302);
-  expect(release.title).toBe("The Best Of ZZ Top");
+  let release = await collection.release(1818184);
+  expect(release.title).toBe("Argybargy");
 });
 
 test("bad release_id returns undefined", async () => {

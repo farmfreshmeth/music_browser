@@ -9,5 +9,5 @@ beforeAll(async () => {
 });
 
 test("storage exists", async () => {
-  expect(await testStorage.length()).toBe(42);
+  expect(await testStorage.length()).toBe(49);
 });

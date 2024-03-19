@@ -47,34 +47,37 @@ Discogs.prototype.setCustomFieldValue = function () {
   // TODO
 };
 
-Discogs.prototype.downloadRelease = function (release_id) {
+Discogs.prototype.downloadRelease = function (release_id, callback) {
   https_options.path = "/releases/" + release_id;
-  this.sendRequest((data) => {
-    return data;
+  this.sendRequest((release) => {
+    callback(release);
   });
 };
 
 // Common to all endpoints.  Uses callbacks, not promises
 Discogs.prototype.sendRequest = function (callback) {
-  var req = https.request(https_options, (res) => {
+  let json = {};
+  let req = https.request(https_options, (res) => {
     if (res.statusCode !== 200) {
       console.error(`
         Did not get an OK from the server. Code: ${res.statusCode}
           path: https://${req.host}${req.path}
           headers: ${JSON.stringify(req.getHeaders(), null, 2)}
       `);
-      res.resume();
+
       return;
-    }
+    };
 
     let data = "";
-
     res.on("data", (chunk) => {
       data += chunk;
     });
 
-    res.on("close", () => {
-      callback(JSON.parse(data));
+    res.on("close", () => {});
+
+    res.on("end", () => {
+      json = JSON.parse(data);
+      callback(json);
     });
   });
 

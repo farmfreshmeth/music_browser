@@ -13,8 +13,8 @@ const Discogs = require("./discogs.js");
 const discogs = new Discogs();
 const storage = require("node-persist");
 const Collection = require("./collection.js");
-const fs = require("fs");
-const { parse } = require("csv-parse");
+const fs = require("node:fs/promises");
+const CSV = require('csv-string');
 const Mailer = require("./mailer.js");
 const mailer = new Mailer();
 
@@ -25,98 +25,141 @@ const delay = async (ms = 1050) =>
 // opts: download: true, request_export: true, flush: true, env: "production"
 let DataBuilder = function (opts) {
   this.opts = opts;
-  this.log = [];
+  this.db_dir = this.opts.env == "production" ? ".node-persist" : "tests/data";
+  this.log_details = [];
+  this.export_file = "";
+  this.export_rows = [];
+  this.collection = undefined;
 };
 
-DataBuilder.prototype.mountCollection = async function(env) {
-  let db_dir = env == "production" ? ".node-persist" : "tests/data";
-  await storage.init({ dir: db_dir });
+// timestamps, adds to log, prints to console
+DataBuilder.prototype.log = function (message) {
+  let ts = (new Date()).toISOString();
+  let str = `[${ts}] ${message}`;
+  this.log_details.push(str);
+};
+
+DataBuilder.prototype.flushDB = async function() {
+  await storage.init({ dir: this.db_dir });
+  await storage.clear();
+  this.collection = undefined;
+};
+
+DataBuilder.prototype.mountCollection = async function() {
+  await storage.init({ dir: this.db_dir });
   this.collection = new Collection(storage);
-  this.log.push(`Mounted collection [env: ${this.opts.env}]`);
+  this.log(`Mounted collection [env: ${this.opts.env}]`);
 };
 
 DataBuilder.prototype.requestExport = async function () {
-  this.log.push("requestExport");
+  let export_id = "export_id";
+  this.log("requestExport: " + export_id);
+  return export_id;
 };
 
 DataBuilder.prototype.checkExport = async function () {
-  this.log.push("checkExport");
+  this.log("checkExport");
 };
 
 DataBuilder.prototype.downloadExport = async function () {
-  this.log.push("downloadExport");
+  this.log("downloadExport: " + export_file);
+  return export_file;
 };
 
-DataBuilder.prototype.parseExport = function () {
+DataBuilder.prototype.parseExport = async function (export_file) {
+  this.log("parseExport: " + export_file);
+  try {
+    const fh = await fs.open(export_file, 'r');
+    for await (const line of fh.readLines()) {
+      this.export_rows.push(CSV.parse(line, ",")[0]);
+    };
+    this.export_rows.shift(); // remove column headers
+    this.log("parseExport success: " + this.export_rows.length);
+    return this.export_rows;
+  } catch (err) {
+    this.log("parseExport error: " + err.message);
+    return undefined;
+  };
+};
 
-
-  var rows = [];
-  fs.createReadStream(export_file)
-    .pipe(parse({ delimiter: ",", from_line: 2 }))
-    .on("data", function (row) {
-      collection.push(row);
-    })
-    .on("end", function () {
-      // TODO persist or pass to download?
-    })
-    .on("error", function (error) {
-      this.log.push(error.message);
+DataBuilder.prototype.downloadReleases = async function (arr_release_ids) {
+  this.log("downloadReleases start");
+  for (let i in arr_release_ids) {
+    discogs.downloadRelease(arr_release_ids[i], async (release) => {
+      if (!release) {
+        this.log(`downloadReleases: ${arr_release_ids[i]} returned undefined`);
+      } else {
+        await storage.setItem(arr_release_ids[i], release);
+        this.log("downloadReleases: " + [release["id"], release["title"], release["artists_sort"]].join(" | "));
+      }
     });
-  this.log.push("parseExport");
-};
-
-DataBuilder.prototype.persist = async function () {
-  this.log.push("persist");
-};
-
-DataBuilder.prototype.downloadReleases = async function () {
-  // loop with delay
-  this.log.push("downloadReleases");
+    await delay();
+  }
 };
 
 DataBuilder.prototype.downloadLyrics = async function () {
   // TODO genius.getLyrics();
 };
 
-DataBuilder.prototype.mergeData = function () {
-  this.log.push("mergeData");
+DataBuilder.prototype.mergeData = async function () {
+  for (let i in this.export_rows) {
+    release_id = String(this.export_rows[i][7]);
+    let release = await storage.getItem(release_id);
+    if (release) {
+      release["custom_fields"] = {
+        folder: this.export_rows[i][8],
+        crate_num: this.export_rows[i][8].slice(0,2),
+        section: this.export_rows[i][8].slice(3),
+        media_condition: this.export_rows[i][10],
+        sleeve_condition: this.export_rows[i][11],
+        from_collection: this.export_rows[i][12],
+        notes: this.export_rows[i][13],
+        commentary: this.export_rows[i][14]
+      };
+      await storage.setItem(release_id, release);
+      this.log(["mergeData", i, this.export_rows[i][0], this.export_rows[i][2], this.export_rows[i][1]].join(" | "),);
+    } else {
+      this.log(`mergeData error: ${release_id} not in storage.`);
+    };
+  };
 };
 
-DataBuilder.prototype.buildFolderList = function () {
-  // collection.buildFolderList()
-  this.log.push("buildFolderList");
+/*
+  storage["folders"] = [
+    {"01 Grateful Dead": {
+      "name": "01 Grateful Dead",
+      "crate": 1,
+      "section": "Grateful Dead",
+      "encoded_name": "01%20Grateful%20Dead"
+    }},
+    {},...
+  ]
+*/
+DataBuilder.prototype.buildFolderList = async function () {
+  let releases = await this.collection.releases();
+  let folders = [];
+  let folder_names = [];
+  for (i in releases) {
+    let this_folder_name = releases[i]["custom_fields"]["folder"];
+    if (!folder_names.includes(this_folder_name)) {
+      let folder = {};
+      folder[this_folder_name] = {
+        "name": this_folder_name,
+        "crate": Number(this_folder_name.slice(0, 2)),
+        "section": this_folder_name.slice(3),
+        "encoded_name": encodeURIComponent(this_folder_name)
+      };
+      folders.push(folder);
+      folder_names.push(this_folder_name);
+    }
+  }
+  await this.collection.storage.setItem("folders", folders);
+  this.log("buildFolderList: " + folders.length);
 };
 
 DataBuilder.prototype.cleanup = async function () {
-  // cleanup: remove collection key, remove old data, promote new data, send log via email
-
-  // respect opts.flush
-  this.log.push("clean up");
-};
-
-/* ================= main ====================== */
-
-DataBuilder.prototype.rebuildDB = async function () {
-  await this.mountCollection(this.opts.env);
-  if (this.opts.request_export) {
-    this.requestExport()
-    this.checkExport();
-    this.downloadExport();
-  };
-  this.parseExport();
-  this.persist();
-  if (this.opts.download) { this.downloadReleases() };
-  this.downloadLyrics();
-  this.mergeData();
-  this.buildFolderList();
-  this.cleanup();
-
-  this.log.push("DB rebuilt: " + JSON.stringify(this.opts));
-  if (this.opts.env == "production") {
-    mailer.send("DataBuilder report", this.log.join("\n"))
-  } else {
-    console.log(this.log.join("\n"));
-  };
+  // TODO remove export file if exists
+  this.log("clean up");
 };
 
 module.exports = DataBuilder;
