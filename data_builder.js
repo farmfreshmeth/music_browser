@@ -37,8 +37,10 @@ DataBuilder.prototype.log = function (message) {
   let ts = (new Date()).toISOString();
   let str = `[${ts}] ${message}`;
   this.log_details.push(str);
+  if (this.opts.env != "test") { console.log(str) };
 };
 
+// CAREFUL:  flushing without rebuilding successfully breaks everything
 DataBuilder.prototype.flushDB = async function() {
   await storage.init({ dir: this.db_dir });
   await storage.clear();
@@ -52,16 +54,19 @@ DataBuilder.prototype.mountCollection = async function() {
 };
 
 DataBuilder.prototype.requestExport = async function () {
-  let export_id = "export_id";
-  this.log("requestExport: " + export_id);
-  return export_id;
+  let export_url = await discogs.requestExport();
+  this.log("requestExport: " + export_url);
+  return export_url;
 };
 
-DataBuilder.prototype.checkExport = async function () {
-  this.log("checkExport");
+DataBuilder.prototype.checkExport = async function (export_url) {
+  let download_url = await discogs.checkExport(export_url);
+  this.log("checkExport: download ready " + download_url);
+  return download_url;
 };
 
-DataBuilder.prototype.downloadExport = async function () {
+DataBuilder.prototype.downloadExport = async function (download_url) {
+  let export_file = await discogs.downloadExport(download_url);
   this.log("downloadExport: " + export_file);
   return export_file;
 };
@@ -69,13 +74,22 @@ DataBuilder.prototype.downloadExport = async function () {
 DataBuilder.prototype.parseExport = async function (export_file) {
   this.log("parseExport: " + export_file);
   try {
+
     const fh = await fs.open(export_file, 'r');
+
     for await (const line of fh.readLines()) {
-      this.export_rows.push(CSV.parse(line, ",")[0]);
+      let row = CSV.parse(line, ",")[0];
+      if (row.length != 15) { console.log(row) };
+      this.export_rows.push(row);
     };
+
+
+
     this.export_rows.shift(); // remove column headers
     this.log("parseExport success: " + this.export_rows.length);
+    if (this.opts.env == "production") { fs.unlink(export_file) };
     return this.export_rows;
+
   } catch (err) {
     this.log("parseExport error: " + err.message);
     return undefined;
@@ -117,7 +131,7 @@ DataBuilder.prototype.mergeData = async function () {
         commentary: this.export_rows[i][14]
       };
       await storage.setItem(release_id, release);
-      this.log(["mergeData", i, this.export_rows[i][0], this.export_rows[i][2], this.export_rows[i][1]].join(" | "),);
+      this.log(["mergeData", i, this.export_rows[i][2], this.export_rows[i][1]].join(" | "),);
     } else {
       this.log(`mergeData error: ${release_id} not in storage.`);
     };

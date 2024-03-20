@@ -12,10 +12,21 @@
 
 let DataBuilder = require("../data_builder.js");
 
-let env = process.argv.includes("--production") ? "production" : "test";
-let request_export = process.argv.includes("--no-export") ? false : true;
+let env = "";
+let export_file = "";
+if (process.argv.includes("--production")) {
+  env = "production";
+  export_file = ""; // set by discogs
+} else if (process.argv.includes("--test")) {
+  env = "test";
+  export_file = "tests/test_export.csv";
+} else {
+  env = "development";
+  export_file = "local/bgatewood-collection-20240320-0521.csv";
+}
+let request_export = process.argv.includes("--request-export") ? true : false;
 let download = process.argv.includes("--no-download") ? false : true;
-let flush = process.argv.includes("--no-flush") ? false : true;
+let flush = process.argv.includes("--flush") ? true : false; // don't flush unless you have to
 
 let opts = {
   env: env,
@@ -23,7 +34,6 @@ let opts = {
   download: download,
   flush: flush,
 };
-let export_file = "tests/test_export.csv";
 
 let builder = new DataBuilder(opts);
 
@@ -34,11 +44,11 @@ let builder = new DataBuilder(opts);
 
   await builder.mountCollection();
 
-  if (opts.request_export) {
-    let export_id = await builder.requestExport();
-    await builder.checkExport(export_id);
-    builder.export_file = await builder.downloadExport();
-  }
+  // if (opts.request_export) {
+  //   let export_url = await builder.requestExport();
+  //   let download_url = await builder.checkExport(export_url);
+  //   export_file = await builder.downloadExport(download_url);
+  // }
 
   await builder.parseExport(export_file);
 
