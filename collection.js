@@ -6,42 +6,41 @@
     routes/views should interact with Collection,
     not Discogs or node-storage directly
 
-    storage layout is:
-    {
-      key: "folders", value: [{folder object},...],
-      key: "123456", value: {release object with custom fields},
-      key: "234567", value: {release object with custom fields},
-      ...
-    }
-    -- releases keys are all numeric
+    An Item is a Release in the Collection including
+    custom fields and folder.
 */
 
 // pass an initialized node-persist storage object to constructor
 var Collection = function (storage) {
   this.storage = storage;
+  this.folders = this.folders();
+  this.customFields = this.customFields();
 };
 
-// count only release objects
-Collection.prototype.length = async function () {
-  let releases = await this.releases();
-  return releases.length;
+// TODO paginate
+Collection.prototype.items = async function (folder = 0, page = 1, per_page = 50) {
+  // get values where key /^item_\d+/g;
 };
 
-// return just the releases objects
-Collection.prototype.releases = async function () {
-  let obj = await this.storage.valuesWithKeyMatch(/^\d+$/); // numeric keys
-  return Array.from(obj);
+Collection.prototype.item = async function (release_id) {
+  return await this.storage.getItem(`release_${release_id}`);
 };
 
 Collection.prototype.folders = async function () {
   return await this.storage.getItem("folders");
 };
 
+Collection.prototype.customFields = async function () {
+  return await this.storage.getItem("custom_fields");
+};
+
 // TODO deep search (all keys/values)
+// TODO paginate
 Collection.prototype.search = async function (search_str, search_target) {
   var regex = new RegExp(search_str, "gi");
   var results = [];
   await this.storage.forEach(async (release) => {
+    // TODO skip non release keys
     if (
       (search_target == "folder" &&
         release.value.custom_fields &&
@@ -53,13 +52,6 @@ Collection.prototype.search = async function (search_str, search_target) {
     }
   });
   return results;
-};
-
-Collection.prototype.release = async function (release_id) {
-  if (typeof release_id == "number") {
-    release_id = String(release_id);
-  }
-  return await this.storage.getItem(release_id);
 };
 
 module.exports = Collection;

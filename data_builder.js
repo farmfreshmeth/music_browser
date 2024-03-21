@@ -1,20 +1,30 @@
 /*
-  data_builder.js marshalls data from Discogs into node-persist storage
-    it is called by node-scheduler to rebuild the local db from Discogs
-    exports and API calls
+  data_builder.js wraps discogs.js and marshalls data from Discogs
+    into node-persist storage.  It is used by scripts/build_local_db.js
+    to rebuild the local db from the Discogs API.
 
-    it is necessary to do this because the Discogs API doesn't support
-    collection search, only full db search.  Using exports avoids having
-    to paginate through the collection in the api
+    It is necessary to do this because the Discogs API doesn't support
+    collection search.
+
+    storage layout is:
+    {
+      key: "folders", value: {"1": {folder}, "2": {folder},...},
+      key: "custom_fields", value: {"id": {custom_field},...},
+      key: "item_123456", value: {collection item},
+      key: "item_6543210", value: {collection item},
+      ...
+    }
+    -- item keys are numeric strings of varying length
+    -- a "Release" corresponds to Discogs "Release" resource
+    -- an "Item" is a Release in a Collection (including custom data)
 */
 
 require("dotenv").config();
 const Discogs = require("./discogs.js");
 const discogs = new Discogs();
 const storage = require("node-persist");
-const Collection = require("./collection.js");
 const fs = require("node:fs/promises");
-const CSV = require('csv-string');
+const CSV = require("csv-string");
 const Mailer = require("./mailer.js");
 const mailer = new Mailer();
 
@@ -22,159 +32,119 @@ const mailer = new Mailer();
 const delay = async (ms = 1050) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-// opts: download: true, request_export: true, flush: true, env: "production"
+// opts: flush: false, env: "production"|"development"|"test"
 let DataBuilder = function (opts) {
   this.opts = opts;
-  this.db_dir = this.opts.env == "production" ? ".node-persist" : "tests/data";
+  this.db_dir = this.opts.env == "test" ? "tests/data" : ".node-persist";
   this.log_details = [];
-  this.export_file = "";
-  this.export_rows = [];
-  this.collection = undefined;
 };
 
-// timestamps, adds to log, prints to console
+DataBuilder.prototype.mountStorage = async function () {
+  await storage.init(this.db_dir);
+  this.log(`mountStorage: ${this.db_dir}`);
+};
+
 DataBuilder.prototype.log = function (message) {
-  let ts = (new Date()).toISOString();
-  let str = `[${ts}] ${message}`;
+  let ts = new Date().toISOString();
+  let str = `[${this.opts.env} ${ts}] ${message}`;
   this.log_details.push(str);
-  if (this.opts.env != "test") { console.log(str) };
+  if (this.opts.env != "test") {
+    console.log(str);
+  }
 };
 
 // CAREFUL:  flushing without rebuilding successfully breaks everything
-DataBuilder.prototype.flushDB = async function() {
-  await storage.init({ dir: this.db_dir });
-  await storage.clear();
-  this.collection = undefined;
-};
-
-DataBuilder.prototype.mountCollection = async function() {
-  await storage.init({ dir: this.db_dir });
-  this.collection = new Collection(storage);
-  this.log(`Mounted collection [env: ${this.opts.env}]`);
-};
-
-DataBuilder.prototype.requestExport = async function () {
-  let export_url = await discogs.requestExport();
-  this.log("requestExport: " + export_url);
-  return export_url;
-};
-
-DataBuilder.prototype.checkExport = async function (export_url) {
-  let download_url = await discogs.checkExport(export_url);
-  this.log("checkExport: download ready " + download_url);
-  return download_url;
-};
-
-DataBuilder.prototype.downloadExport = async function (download_url) {
-  let export_file = await discogs.downloadExport(download_url);
-  this.log("downloadExport: " + export_file);
-  return export_file;
-};
-
-DataBuilder.prototype.parseExport = async function (export_file) {
-  this.log("parseExport: " + export_file);
-  try {
-
-    const fh = await fs.open(export_file, 'r');
-
-    for await (const line of fh.readLines()) {
-      let row = CSV.parse(line, ",")[0];
-      if (row.length != 15) { console.log(row) };
-      this.export_rows.push(row);
-    };
-
-
-
-    this.export_rows.shift(); // remove column headers
-    this.log("parseExport success: " + this.export_rows.length);
-    if (this.opts.env == "production") { fs.unlink(export_file) };
-    return this.export_rows;
-
-  } catch (err) {
-    this.log("parseExport error: " + err.message);
-    return undefined;
+//    pass true as flush param
+DataBuilder.prototype.flushDB = async function (flush, callback) {
+  if (flush) {
+    await storage.init(this.db_dir);
+    await storage.clear(this.db_dir);
+    await storage.init(this.db_dir); // reinitialize empty database
+    this.log(`Flushed database at ${this.db_dir}`);
+  } else {
+    this.log(`Did not flush database at ${this.db_dir}`);
   };
+  callback();
 };
 
-DataBuilder.prototype.downloadReleases = async function (arr_release_ids) {
-  this.log("downloadReleases start");
-  for (let i in arr_release_ids) {
-    discogs.downloadRelease(arr_release_ids[i], async (release) => {
-      if (!release) {
-        this.log(`downloadReleases: ${arr_release_ids[i]} returned undefined`);
-      } else {
-        await storage.setItem(arr_release_ids[i], release);
-        this.log("downloadReleases: " + [release["id"], release["title"], release["artists_sort"]].join(" | "));
-      }
-    });
-    await delay();
-  }
-};
-
-DataBuilder.prototype.downloadLyrics = async function () {
-  // TODO genius.getLyrics();
-};
-
-DataBuilder.prototype.mergeData = async function () {
-  for (let i in this.export_rows) {
-    release_id = String(this.export_rows[i][7]);
-    let release = await storage.getItem(release_id);
-    if (release) {
-      release["custom_fields"] = {
-        folder: this.export_rows[i][8],
-        crate_num: this.export_rows[i][8].slice(0,2),
-        section: this.export_rows[i][8].slice(3),
-        media_condition: this.export_rows[i][10],
-        sleeve_condition: this.export_rows[i][11],
-        from_collection: this.export_rows[i][12],
-        notes: this.export_rows[i][13],
-        commentary: this.export_rows[i][14]
+// {"34225": {folder}, "883838": {folder},...}
+DataBuilder.prototype.buildFoldersList = async function (callback) {
+  discogs.downloadFolders(async (data) => {
+    let raw_folders = data["folders"];
+    let fixed_up_folders = {};
+    for (let i in raw_folders) {
+      let this_folder = {
+        id: String(raw_folders[i]["id"]),
+        name: raw_folders[i]["name"],
+        name_encoded: encodeURIComponent(raw_folders[i]["name"]),
+        crate: raw_folders[i]["name"].substring(0, 2),
+        section: raw_folders[i]["name"].substring(3),
+        count: raw_folders[i]["count"]
       };
-      await storage.setItem(release_id, release);
-      this.log(["mergeData", i, this.export_rows[i][2], this.export_rows[i][1]].join(" | "),);
-    } else {
-      this.log(`mergeData error: ${release_id} not in storage.`);
-    };
-  };
-};
-
-/*
-  storage["folders"] = [
-    {"01 Grateful Dead": {
-      "name": "01 Grateful Dead",
-      "crate": 1,
-      "section": "Grateful Dead",
-      "encoded_name": "01%20Grateful%20Dead"
-    }},
-    {},...
-  ]
-*/
-DataBuilder.prototype.buildFolderList = async function () {
-  let releases = await this.collection.releases();
-  let folders = [];
-  let folder_names = [];
-  for (i in releases) {
-    let this_folder_name = releases[i]["custom_fields"]["folder"];
-    if (!folder_names.includes(this_folder_name)) {
-      let folder = {};
-      folder[this_folder_name] = {
-        "name": this_folder_name,
-        "crate": Number(this_folder_name.slice(0, 2)),
-        "section": this_folder_name.slice(3),
-        "encoded_name": encodeURIComponent(this_folder_name)
-      };
-      folders.push(folder);
-      folder_names.push(this_folder_name);
+      fixed_up_folders[raw_folders[i]["id"]] = this_folder;
     }
-  }
-  await this.collection.storage.setItem("folders", folders);
-  this.log("buildFolderList: " + folders.length);
+    await storage.setItem("folders", fixed_up_folders);
+    this.log(`buildFoldersList: ${raw_folders.length}`);
+    callback();
+  });
 };
 
-DataBuilder.prototype.cleanup = async function () {
-  // TODO remove export file if exists
-  this.log("clean up");
+// {"1": {field}, "2": {field},...}
+DataBuilder.prototype.buildCustomFieldsList = async function (callback) {
+  discogs.downloadCustomFields(async (data) => {
+    let raw_fields = data["fields"];
+    let fixed_up_fields = {};
+    for (let i in raw_fields) {
+      let this_field = {
+        id: raw_fields[i]["id"],
+        name: raw_fields[i]["name"]
+      };
+      fixed_up_fields[raw_fields[i]["id"]] = this_field;
+    }
+    await storage.setItem("custom_fields", fixed_up_fields);
+    this.log(`buildCustomFieldsList: ${raw_fields.length}`);
+    callback();
+  });
+};
+
+// TODO paginate through collection (instead of downloading export)
+DataBuilder.prototype.buildCollectionItemsList = async function (
+  folder_id,
+  callback,
+) {
+  discogs.downloadCollectionItems(folder_id, async (data) => {
+    let collection_items = data["releases"];
+    for (let i in collection_items) {
+      this.fixUpItem(collection_items[i], async (fixed_up_item) => {
+        await storage.setItem(`item_${fixed_up_item["id"]}`, fixed_up_item);
+        await delay(); // rate limited
+      });
+    }
+    callback();
+  });
+};
+
+// Need to get full release data from API and merge with custom fields
+DataBuilder.prototype.fixUpItem = async function (raw_item, callback) {
+  const folders = await storage.getItem("folders");
+  const custom_fields = await storage.getItem("custom_fields");
+  let fixed_up_item = {};
+  discogs.downloadRelease(raw_item["id"], async (release) => {
+    release["custom_data"] = [];
+    release["folder"] = {
+      id: raw_item["folder_id"],
+      name: folders[raw_item["folder_id"]].name,
+      crate: folders[raw_item["folder_id"]].crate,
+      section: folders[raw_item["folder_id"]].section
+    };
+    for (let i in raw_item["notes"]) {
+      raw_item["notes"][i]["name"] = custom_fields[raw_item["notes"][i]["field_id"]].name;
+      release["custom_data"].push(raw_item["notes"][i]);
+    }
+    fixed_up_item = release;
+    this.log(`fixUpItem: ${fixed_up_item["id"]}`);
+    callback(fixed_up_item);
+  });
 };
 
 module.exports = DataBuilder;
-
