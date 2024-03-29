@@ -6,17 +6,7 @@
     It is necessary to do this because the Discogs API doesn't support
     collection search.
 
-    storage layout is:
-    {
-      key: "folders", value: {"1": {folder}, "2": {folder},...},
-      key: "custom_fields", value: {"id": {custom_field},...},
-      key: "item_123456", value: {collection item},
-      key: "item_6543210", value: {collection item},
-      ...
-    }
-    -- item keys are numeric strings of varying length
-    -- a "Release" corresponds to Discogs "Release" resource
-    -- an "Item" is a Release in a Collection (including custom data)
+    See collection.js for storage layout
 */
 
 require("dotenv").config();
@@ -35,31 +25,29 @@ const delay = async (ms = 1050) =>
 // opts: flush: false, env: "production"|"development"|"test"
 let DataBuilder = function (opts) {
   this.opts = opts;
-  this.db_dir = this.opts.env == "test" ? "tests/data" : ".node-persist";
+  this.db_dir = this.opts.env == "test" ? "tests/data" : ".node-persist/storage";
   this.log_details = [];
 };
 
-DataBuilder.prototype.mountStorage = async function () {
-  await storage.init(this.db_dir);
+DataBuilder.prototype.mountStorage = async function (callback) {
+  await storage.init({dir: this.db_dir});
+  this.storage = storage;
   this.log(`mountStorage: ${this.db_dir}`);
+  callback();
 };
 
 DataBuilder.prototype.log = function (message) {
   let ts = new Date().toISOString();
   let str = `[${this.opts.env} ${ts}] ${message}`;
   this.log_details.push(str);
-  if (this.opts.env != "test") {
-    console.log(str);
-  }
+  console.log(str);
 };
 
 // CAREFUL:  flushing without rebuilding successfully breaks everything
-//    pass true as flush param
 DataBuilder.prototype.flushDB = async function (flush, callback) {
   if (flush) {
-    await storage.init(this.db_dir);
-    await storage.clear(this.db_dir);
-    await storage.init(this.db_dir); // reinitialize empty database
+    await this.storage.clear({dir: this.db_dir});
+    await this.storage.init({dir: this.db_dir}); // reinitialize empty database
     this.log(`Flushed database at ${this.db_dir}`);
   } else {
     this.log(`Did not flush database at ${this.db_dir}`);
@@ -83,7 +71,7 @@ DataBuilder.prototype.buildFoldersList = async function (callback) {
       };
       fixed_up_folders[raw_folders[i]["id"]] = this_folder;
     }
-    await storage.setItem("folders", fixed_up_folders);
+    await this.storage.setItem("folders", fixed_up_folders);
     this.log(`buildFoldersList: ${raw_folders.length}`);
     callback();
   });

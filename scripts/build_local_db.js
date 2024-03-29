@@ -23,7 +23,7 @@ if (process.argv.includes("--production")) {
 } else {
   env = "development";
 }
-let flush = process.argv.includes("--flush") ? true : false; // don't flush unless you have to
+let flush = process.argv.includes("--flush") ? true : false;
 
 let opts = {
   env: env,
@@ -31,17 +31,18 @@ let opts = {
 };
 
 let builder = new DataBuilder(opts);
-builder.mountStorage();
 
 (async (opts) => {
-  await builder.flushDB(flush, async () => {
-    await builder.buildFoldersList(async () => {
-      await builder.buildCustomFieldsList(async () => {
-        await builder.buildCollectionItemsList(folder_id, async () => {
-          builder.log("DB rebuilt: " + JSON.stringify(opts));
-          if (opts.env == "production") {
-            mailer.send("DataBuilder report", builder.log_details.join("\n"));
-          }
+  await builder.mountStorage(async () => {
+    await builder.flushDB(opts.flush, async () => {
+      await builder.buildFoldersList(async () => {
+        await builder.buildCustomFieldsList(async () => {
+          await builder.buildCollectionItemsList(folder_id, async () => {
+            builder.log("DB rebuilt: " + JSON.stringify(opts));
+            if (opts.env == "production") {
+              mailer.send("DataBuilder report", builder.log_details.join("\n"));
+            }
+          });
         });
       });
     });

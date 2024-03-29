@@ -24,9 +24,9 @@ hr {
 .thumb { padding-right: 10px; }
 .search-str { font-size: 2em; }
 .search-target {  }
-.release-artist { font-weight: bold; }
-.release-title { font-size: 1.3em; padding-bottom: 10px; }
-.release-details { margin-top: 20px; margin-bottom: 20px; }
+.item-artist { font-weight: bold; }
+.item-title { font-size: 1.3em; padding-bottom: 10px; }
+.item-details { margin-top: 20px; margin-bottom: 20px; }
 
 .track-sm {
   font-size: 11px;
@@ -44,7 +44,14 @@ a.folder-tile {
   border-radius: 5px;
   color: white;
   font-weight: bold;
-  line-height: 3em;
+  line-height: 1.1em;
+
+  a:link { text-decoration: none; }
+  a:visited { text-decoration: none; }
+  a:hover { text-decoration: none; }
+  a:active { text-decoration: none; }
+  .folder-text { font-size: 1.3em; }
+  .crate-text { font-size: 0.75em; }
 }
 
 .radio-label {

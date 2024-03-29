@@ -36,14 +36,14 @@ hr {
 .search-str {
   font-size: 2em;
 }
-.release-artist {
+.item-artist {
   font-weight: bold;
 }
-.release-title {
+.item-title {
   font-size: 1.3em;
   padding-bottom: 10px;
 }
-.release-details {
+.item-details {
   margin-top: 20px;
   margin-bottom: 20px;
 }
@@ -72,7 +72,25 @@ a.folder-tile {
   border-radius: 5px;
   color: white;
   font-weight: bold;
-  line-height: 3em;
+  line-height: 1.1em;
+}
+a.folder-tile a:link {
+  text-decoration: none;
+}
+a.folder-tile a:visited {
+  text-decoration: none;
+}
+a.folder-tile a:hover {
+  text-decoration: none;
+}
+a.folder-tile a:active {
+  text-decoration: none;
+}
+a.folder-tile .folder-text {
+  font-size: 1.3em;
+}
+a.folder-tile .crate-text {
+  font-size: 0.75em;
 }
 .radio-label {
   display: inline-block;

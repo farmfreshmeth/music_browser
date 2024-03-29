@@ -16,8 +16,8 @@ var logger = require("morgan");
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
-var releasesRouter = require("./routes/releases");
-var releaseRouter = require("./routes/release");
+var itemsRouter = require("./routes/items");
+var itemRouter = require("./routes/item");
 
 var app = express();
 
@@ -51,8 +51,8 @@ app.use(lessMiddleware(path.join(__dirname, "public"), lessConfig));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(foldersRouter);
-app.use(releasesRouter);
-app.use(releaseRouter);
+app.use(itemsRouter);
+app.use(itemRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

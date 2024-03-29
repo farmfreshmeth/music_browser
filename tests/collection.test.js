@@ -2,43 +2,47 @@
   collection.test.js
 */
 
-const testStorage = require("node-persist");
+const storage = require("node-persist");
 const Collection = require("../collection.js");
-const collection =  new Collection(testStorage);
+let collection;
 
-beforeEach (async () => {
-  await collection.storage.init({ dir: "tests/data" });
+beforeAll(() => {
+  return new Promise(async (resolve) => {
+    await storage.init({ dir: "tests/data" });
+    collection = new Collection(storage);
+    resolve();
+  });
 });
 
 test("constructor mounts storage", async () => {
-  expect(await collection.length()).toBe(48);
+  expect(await collection.length()).toBe(3);
 });
 
 test("folders() returns folder list", async () => {
   let folders = await collection.folders();
-  expect(folders.length).toBe(17);
+  expect(folders.length).toBe(49);
   expect(folders[0]).toStrictEqual({
-    "09 Rock & Roll": {
-      "crate": 9,
-      "encoded_name": "09%20Rock%20%26%20Roll",
-      "name": "09 Rock & Roll",
-      "section": "Rock & Roll",
-    },
+    "count": 15,
+    "crate": "11",
+    "id": "6989107",
+    "name": "11 Alternative Rock",
+    "name_encoded": "11%20Alternative%20Rock",
+    "section": "Alternative Rock",
   });
 });
 
 test("folder search returns a list of releases", async () => {
-  let releases = await collection.search("01 Grateful Dead", "folder");
-  expect(releases.length).toBe(2);
+  let releases = await collection.search("13 Jazz", "folder");
+  expect(releases.length).toBe(1);
 });
 
 test("artist search returns a list releases", async () => {
-  let releases = await collection.search("police", "artist");
-  expect(releases.length).toBe(5);
+  let releases = await collection.search("annie", "artist");
+  expect(releases.length).toBe(1);
 });
 
 test("title search returns a list of releases", async () => {
-  let releases = await collection.search("argybargy", "release_title");
+  let releases = await collection.search("ankles", "release_title");
   expect(releases.length).toBe(1);
 });
 
@@ -47,17 +51,17 @@ test("empty search returns an empty list", async () => {
   expect(releases.length).toBe(0);
 });
 
-test("release() returns a single release", async () => {
-  let release = await collection.release("1818184");
-  expect(release.title).toBe("Argybargy");
+test("item() returns a single collection item", async () => {
+  let item = await collection.item("2891017");
+  expect(item.title).toBe("Honky Tonk Piano");
 });
 
-test("release() handles number search_str", async() => {
-  let release = await collection.release(1818184);
-  expect(release.title).toBe("Argybargy");
+test("item() handles number search_str", async () => {
+  let item = await collection.item(2891017);
+  expect(item.title).toBe("Honky Tonk Piano");
 });
 
 test("bad release_id returns undefined", async () => {
-  let release = await collection.release("not a release_id");
-  expect(release).toBe(undefined);
+  let item = await collection.item("not a release_id");
+  expect(item).toBe(undefined);
 });
