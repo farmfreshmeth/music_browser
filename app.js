@@ -1,33 +1,43 @@
-require('dotenv').config();
+/*
+  music_browser
+*/
 
+require("dotenv").config();
+const storage = require("node-persist");
+const Collection = require("./collection.js");
+var DataBuilder = require("./data_builder.js");
+const schedule = require("node-schedule");
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
-
 var lessMiddleware = require("less-middleware");
+var logger = require("morgan");
+
+// Container page routes
+var foldersRouter = require("./routes/folders");
+var itemsRouter = require("./routes/items");
+var itemRouter = require("./routes/item");
+
+var app = express();
+
 if (process.env.NODE_ENV == "development") {
   var lessConfig = {
     render: { compress: false },
     force: true,
-    debug: true
+    debug: true,
   };
 } else {
   var lessConfig = {
-    render: { compress: true }
+    render: { compress: true },
   };
 }
 
-var lessConfig = {};
-var logger = require("morgan");
-var Discogs = require("./discogs.js");
-
-// Container page routes
-var foldersRouter = require("./routes/folders");
-var releasesRouter = require("./routes/releases");
-var releaseRouter = require("./routes/release");
-
-var app = express();
+// attach to collection singleton wrapper for storage
+(async () => {
+  await storage.init();
+  app.locals.collection = new Collection(storage);
+})();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -41,8 +51,8 @@ app.use(lessMiddleware(path.join(__dirname, "public"), lessConfig));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(foldersRouter);
-app.use(releasesRouter);
-app.use(releaseRouter);
+app.use(itemsRouter);
+app.use(itemRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -60,10 +70,16 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-// global Discogs object, prefetches dictionary data
-app.locals.discogs = new Discogs();
-app.locals.discogs.mountStorage(async () => {
-  app.locals.discogs.buildFolderListFromCollection();
+// startup tasks
+app.on("listening", () => {
+
+  // schedule periodic db rebuild
+  if (process.env.NODE_ENV == "production") {
+    var dataBuilder = new DataBuilder(app.locals.collection);
+    let thurs = "5 1 12 * * 4";
+    let min = "5 * * * * *"; // DEBUG
+    const rebuildDB = schedule.scheduleJob(thurs, dataBuilder.rebuildDB); // every Thu @ 12:01:05
+  };
 });
 
 module.exports = app;

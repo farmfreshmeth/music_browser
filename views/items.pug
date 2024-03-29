@@ -6,17 +6,17 @@ block content
   .search-str #{search_str}
   hr
 
-  each release in releases
+  each item in items
     .pure-g
       .pure-u-1-1.pure-u-sm-1-5
-        img.pure-img.thumb(src=release['thumb'])
+        img.pure-img.thumb(src=item['thumb'])
       .pure-u-1-1.pure-u-sm-2-5(style="padding-top: 10px;")
-        .release-artist #{release['artists_sort']}
-        .release-title
-          a(href="/release/" + release['id']) #{release['title']}
-        div location: #{release['custom_fields']['folder']}
+        .item-artist #{item['artists_sort']}
+        .item-title
+          a(href="/item/" + item['id']) #{item['title']}
+        div location: crate #{item['folder']['crate']}, section "#{item['folder']['section']}"
       .pure-u-1-1.pure-u-sm-2-5(style="margin-top: 20px")
-        each track in release['tracklist']
+        each track in item['tracklist']
           .track-sm
             .track-position #{track['position']}
             .track-title #{track['title']}

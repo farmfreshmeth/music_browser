@@ -2,9 +2,9 @@ node_modules/
 jspm_packages/
 .env
 .DS_Store
-*.csv
 *.zip
 package-lock.json
 .node-persist/
 data/
 local/
+tests/seed_tests.js

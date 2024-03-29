@@ -1,128 +1,104 @@
 /*
-  Discogs.com/storage client.  https://www.discogs.com/developers/#
+  Discogs.com API client
+    https://www.discogs.com/developers/#
 
-  'get' methods use local storage.  'download' methods hit the api
-
+    API notes:
+    - "/releases/:release_id" does not return custom data
 */
 
-const https = require('https');
-const storage = require('node-persist');
-require('dotenv').config();
+require("dotenv").config();
+const https = require("https");
+const fs = require("fs");
 
 let https_options = {
-  hostname: 'api.discogs.com',
+  hostname: "api.discogs.com",
   port: 443,
-  path: '',
-  method: 'GET',
+  path: "",
+  method: "GET",
   headers: {
-    "User-Agent": "FFMBrowser/1.0 +https://github.com/farmfreshmeth/music_browser",
-    "Authorization": "Discogs token=" + process.env.DISCOGS_PERSONAL_ACCESS_TOKEN
-  }
+    "User-Agent":
+      "FFMBrowser/1.0 +https://github.com/farmfreshmeth/music_browser",
+    Authorization: "Discogs token=" + process.env.DISCOGS_PERSONAL_ACCESS_TOKEN,
+  },
 };
 
-var Discogs = function() {
-  this.token = process.env.DISCOGS_PERSONAL_ACCESS_TOKEN
-  this.folders = [];
-  this.collection = [];
- }
+var Discogs = function () {};
 
- Discogs.prototype.mountStorage = async function(callback = () => {}) {
-  await storage.init();
-  console.log('Discogs mounted storage');
-  callback();
-}
-
-Discogs.prototype.requestExport = async function() {}
-
-Discogs.prototype.checkExport = async function() {}
-
-Discogs.prototype.downloadExport = async function() {}
-
-// TODO change to downloadFolders
-Discogs.prototype.getFolders = function(callback) {
-  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders";
-  this.sendRequest(callback);
-};
-
-// TODO change to downloadCustomFields
-Discogs.prototype.getCustomFields = function(callback) {
-  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/fields";
-  this.sendRequest(callback);
-}
-
-Discogs.prototype.buildFolderListFromCollection = async function() {
-  let uniq_folders = await storage.valuesWithKeyMatch(/folder/);
-  uniq_folders = uniq_folders[0]; // do not know why it's wrapped in an array element
-  for (let i in uniq_folders) {
-    uniq_folders[i]["encoded_name"] = encodeURIComponent(uniq_folders[i]["name"]);
-  }
-  this.folders = uniq_folders;
-}
-
-Discogs.prototype.getFolder = function(folder_id) {
-  var folder_arr = this.folders.filter((folder) => { return folder['id'] == folder_id; });
-  return folder_arr[0];
-}
-
-Discogs.prototype.getReleases = async function(search_str, search_target) {
-  var results = [];
-  await storage.forEach(async (release) => {
-    if (
-      (search_target == "folder" && release.value.custom_fields
-          && release.value.custom_fields.folder == search_str)
-        || (search_target == "artist" && release.value.artists_sort == search_str)
-        || (search_target == "release_title" && release.value.title == search_str)
-      ) {
-      results.push(release.value);
-    }
+// Dictionary of custom folder names
+// Folder 0 = "all", Folder 1 = "uncategorized"
+Discogs.prototype.downloadFolders = function (callback) {
+  https_options.path =
+    "/users/" + process.env.DISCOGS_USER + "/collection/folders";
+  this.sendRequest((data) => {
+    callback(data);
   });
-  return results;
 };
 
-Discogs.prototype.search = async function(search_term) {
-  return [];
-}
-
-Discogs.prototype.downloadReleases = function(folder_id, callback) {
-  this.https_options.path = '/users/' + process.env.DISCOGS_USER + "/collection/folders/" + folder_id + "/releases"
-  this.sendRequest(callback);
-}
-
-Discogs.prototype.getRelease = async function(release_id_str, callback) {
-  let release = await storage.getItem(release_id_str);
-  callback(release);
-}
-
-Discogs.prototype.downloadRelease = function(release_id, callback) {
-  https_options.path = '/releases/' + release_id;
-  this.sendRequest(callback);
+// Dictionary of custom field names & dropdown values
+Discogs.prototype.downloadCustomFields = function (callback) {
+  https_options.path =
+    "/users/" + process.env.DISCOGS_USER + "/collection/fields";
+  this.sendRequest((data) => {
+    callback(data);
+  });
 };
 
-// Common to all endpoints
-Discogs.prototype.sendRequest = function(callback) {
-    var req = https.request(https_options, (res) => {
+/* Collection items include custom data.  Folder 0 is "All".
+    Uses "Collection Items by Folder" endpoint
+    https://www.discogs.com/developers/#page:user-collection,header:user-collection-collection-items-by-folder
+
+    Return data is paginated
+*/
+Discogs.prototype.downloadCollectionItems = function (folder_id = 0, callback) {
+  let per_page = 3; // max allowed 100
+  let page = 1; // let's start at the very beginning, a very good place to start
+  let pages = undefined; // we don't know how many pages until we do the first GET
+  let query = `?page=${page}&per_page=${per_page}&sort=artist&order=asc`;
+
+  // TODO loop through pages
+  https_options.path = `/users/${process.env.DISCOGS_USER}/collection/folders/${folder_id}/releases${query}`;
+  this.sendRequest((collectionItems) => {
+    callback(collectionItems);
+  });
+}
+
+// Endpoint does not return custom data.  Uses "Release" endpoint
+// https://www.discogs.com/developers/#page:database,header:database-release
+Discogs.prototype.downloadRelease = function (release_id, callback) {
+  https_options.path = "/releases/" + release_id;
+  this.sendRequest((release) => {
+    callback(release);
+  });
+};
+
+// Common to most endpoints.  Uses callbacks, not promises
+Discogs.prototype.sendRequest = function (callback) {
+  let json = {};
+  let req = https.request(https_options, (res) => {
     if (res.statusCode !== 200) {
       console.error(`
         Did not get an OK from the server. Code: ${res.statusCode}
           path: https://${req.host}${req.path}
           headers: ${JSON.stringify(req.getHeaders(), null, 2)}
       `);
-      res.resume();
+
       return;
-    }
+    };
 
-    let data = '';
-
-    res.on('data', (chunk) => {
+    let data = "";
+    res.on("data", (chunk) => {
       data += chunk;
     });
 
-    res.on('close', () => {
-      callback(JSON.parse(data));
+    res.on("close", () => {});
+
+    res.on("end", () => {
+      json = JSON.parse(data);
+      callback(json); // only sends back the data, not the whole response
     });
   });
 
-  req.on('error', (e) => {
+  req.on("error", (e) => {
     console.error(e);
   });
   req.end();

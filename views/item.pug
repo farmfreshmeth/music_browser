@@ -1,0 +1,33 @@
+extends layout
+
+block content
+
+  .pure-g
+    .pure-u-1.pure-u-sm-2-5
+      .item-artist #{item['artists'][0]['name']}
+      .item-title #{item['title']}
+      img.pure-img(src=item['images'][0]['uri'])
+
+      .item-details
+        div released: #{item['year']}
+        div location: #{item['folder']}
+        each custom_field in item["custom_data"]
+          if custom_field["name"] == "Media Condition"
+            div #{custom_field["name"]}: #{custom_field["value"]}
+
+      .tracklist
+        table.pure-table
+          thead
+            tr
+              th #
+              th track
+              th min
+          tbody
+            each track in item['tracklist']
+              tr
+                td #{track['position']}
+                td #{track['title']}
+                td #{track['duration']}
+
+      div(style="margin-top: 20px;")
+        a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs
