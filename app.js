@@ -75,10 +75,7 @@ app.on("listening", () => {
 
   // schedule periodic db rebuild
   if (process.env.NODE_ENV == "production") {
-    var dataBuilder = new DataBuilder(app.locals.collection);
-    let thurs = "5 1 12 * * 4";
-    let min = "5 * * * * *"; // DEBUG
-    const rebuildDB = schedule.scheduleJob(thurs, dataBuilder.rebuildDB); // every Thu @ 12:01:05
+    // TODO
   };
 });
 
