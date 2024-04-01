@@ -5,16 +5,15 @@
 let Builder = require("../data_builder.js");
 let builder = {};
 
-beforeEach(() => {
-  let opts = {
-    env: "test",
-    request_export: false,
-    download: false,
-    flush: false,
-  }
-  builder = new Builder(opts);
+beforeAll(async () => {
+  builder = new Builder({ env: 'test', flush: false });
+  await builder.mount();
 });
 
-test("TODO", async () => {
-  return true;
+test("buildFoldersList", async () => {
+  // TODO
+});
+
+afterAll(async () => {
+  await builder.unmount();
 });

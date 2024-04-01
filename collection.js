@@ -22,68 +22,83 @@
     -- an "Item" is a Release in a Collection (including custom data)
 */
 
-// pass an initialized node-persist storage object to constructor
-var Collection = function (storage) {
-  this.storage = storage;
+var Collection = function (pg) {
+  this.pg = pg;
 };
 
 Collection.prototype.length = async function () {
-  return Object.keys(await this.items()).length;
-};
-
-// TODO paginate
-Collection.prototype.items = async function (
-  folder = 0,
-  page = 1,
-  per_page = 50,
-) {
-  let item_keys = await this.storage.valuesWithKeyMatch(/^item_\d+$/);
-  return item_keys;
-};
-
-Collection.prototype.item = async function (release_id) {
-  return await this.storage.getItem(`release_${release_id}`);
+  let res = await this.pg.client.query('SELECT COUNT(*) FROM items');
+  return Number(res["rows"][0].count);
 };
 
 Collection.prototype.folders = async function () {
-  let hash = await this.storage.getItem("folders"); // returns hash
-  var keys = Object.keys(hash).slice(2); // exclude items "0" and "1" (all and uncategorized)
-  var folders = keys.map(function (v) {
-    return hash[v]
+  let query = "SELECT value FROM folders WHERE key > 1"; // exclude All & Uncategorized
+  let res = await this.pg.client.query(query);
+  res.rows = res.rows.sort((a, b) => {
+    return a.value.section.localeCompare(b.value.section);
   });
-  folders.sort((a, b) => {
-    return a["section"].localeCompare(b["section"]);
-  });
-  return folders;
+  return res.rows.map((f) => { return f.value; });
 };
 
 Collection.prototype.customFields = async function () {
   return await this.storage.getItem("custom_fields");
 };
 
-Collection.prototype.item = async function (id) {
-  let key = `item_${id}`;
-  return await this.storage.getItem(key);
+// all items.  TODO paginate
+Collection.prototype.items = async function () {
+  let query = `SELECT value FROM items`;
+  let res = await this.pg.client.query(query);
+  return res.rows.map((f) => { return f.value; });
 };
 
 // TODO deep search (all keys/values)
 // TODO paginate
+// TODO full text search (ts_value)
 Collection.prototype.search = async function (search_str, search_target) {
+  if (search_str == "") { return [] };
   var regex = new RegExp(search_str, "gi");
-  var results = [];
-  await this.storage.forEach(async (release) => {
-    // TODO skip non release keys
-    if (
-      (search_target == "folder" &&
-        release.value.folder &&
-        release.value.folder["name"] == search_str) ||
-      (search_target == "artist" && regex.exec(release.value.artists_sort)) ||
-      (search_target == "release_title" && regex.exec(release.value.title))
-    ) {
-      results.push(release.value);
-    }
-  });
-  return results;
+  let query;
+
+  switch (search_target) {
+    case 'folder':
+      query = `SELECT value FROM items WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')`;
+      break;
+    case 'artist':
+      query = `
+        SELECT
+          items.value
+        FROM
+          items,
+          jsonb_array_elements(value -> 'artists') artist
+        WHERE
+          artist->>'name' ILIKE '%${search_str}%'
+      `;
+      break;
+    case 'release_title':
+      query = `
+        SELECT
+          items.value,
+          items.value ->> 'title' AS title
+        FROM items
+        WHERE items.value ->> 'title' ILIKE '%${search_str}%'
+      `;
+      break;
+    default:
+      // dunno
+  }
+
+  let res = await this.pg.client.query(query);
+  return res.rows.map((i) => { return i.value; });
+};
+
+Collection.prototype.item = async function (key) {
+  try {
+    let query = `SELECT value FROM items WHERE key = ${key}`;
+    let res = await this.pg.client.query(query);
+    return res.rows.map((i) => { return i.value; });
+  } catch (err) {
+    return undefined;
+  };
 };
 
 module.exports = Collection;

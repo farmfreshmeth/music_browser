@@ -3,7 +3,8 @@
 */
 
 require("dotenv").config();
-const storage = require("node-persist");
+// const storage = require("node-persist");
+const PG = require("./pg.js");
 const Collection = require("./collection.js");
 var DataBuilder = require("./data_builder.js");
 const schedule = require("node-schedule");
@@ -35,8 +36,9 @@ if (process.env.NODE_ENV == "development") {
 
 // attach to collection singleton wrapper for storage
 (async () => {
-  await storage.init();
-  app.locals.collection = new Collection(storage);
+  let pg = new PG();
+  await pg.connect();
+  app.locals.collection = new Collection(pg);
 })();
 
 // view engine setup

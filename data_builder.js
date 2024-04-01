@@ -12,7 +12,11 @@
 require("dotenv").config();
 const Discogs = require("./discogs.js");
 const discogs = new Discogs();
-const storage = require("node-persist");
+const storage = require("node-persist"); // DEPRECATED
+
+const PG = require("./pg.js");
+let pg = new PG();
+
 const fs = require("node:fs/promises");
 const CSV = require("csv-string");
 const Mailer = require("./mailer.js");
@@ -29,12 +33,15 @@ let DataBuilder = function (opts) {
   this.log_details = [];
 };
 
-DataBuilder.prototype.mountStorage = async function (callback) {
-  await storage.init({dir: this.db_dir});
-  this.storage = storage;
-  this.log(`mountStorage: ${this.db_dir}`);
-  callback();
+DataBuilder.prototype.mount = async function () {
+  await pg.connect();
+  this.log(`mount: ${JSON.stringify(pg['client']['connectionParameters'], null, 2)}`);
 };
+
+DataBuilder.prototype.unmount = async function () {
+  await pg.end();
+  this.log(`unmount`);
+}
 
 DataBuilder.prototype.log = function (message) {
   let ts = new Date().toISOString();
@@ -56,10 +63,9 @@ DataBuilder.prototype.flushDB = async function (flush, callback) {
 };
 
 // {"34225": {folder}, "883838": {folder},...}
-DataBuilder.prototype.buildFoldersList = async function (callback) {
+DataBuilder.prototype.buildFoldersList = async function () {
   discogs.downloadFolders(async (data) => {
     let raw_folders = data["folders"];
-    let fixed_up_folders = {};
     for (let i in raw_folders) {
       let this_folder = {
         id: String(raw_folders[i]["id"]),
@@ -69,66 +75,61 @@ DataBuilder.prototype.buildFoldersList = async function (callback) {
         section: raw_folders[i]["name"].substring(3),
         count: raw_folders[i]["count"]
       };
-      fixed_up_folders[raw_folders[i]["id"]] = this_folder;
+      await pg.set("folders", raw_folders[i]["id"], this_folder);
+      this.log(`folder ${this_folder.name}`);
     }
-    await this.storage.setItem("folders", fixed_up_folders);
-    this.log(`buildFoldersList: ${raw_folders.length}`);
-    callback();
   });
 };
 
 // {"1": {field}, "2": {field},...}
-DataBuilder.prototype.buildCustomFieldsList = async function (callback) {
+DataBuilder.prototype.buildFieldsList = async function () {
   discogs.downloadCustomFields(async (data) => {
     let raw_fields = data["fields"];
-    let fixed_up_fields = {};
     for (let i in raw_fields) {
       let this_field = {
         id: raw_fields[i]["id"],
         name: raw_fields[i]["name"]
       };
-      fixed_up_fields[raw_fields[i]["id"]] = this_field;
+      await pg.set("fields", raw_fields[i]["id"], this_field);
+      this.log(`field ${this_field.name}`);
     }
-    await storage.setItem("custom_fields", fixed_up_fields);
-    this.log(`buildCustomFieldsList: ${raw_fields.length}`);
-    callback();
   });
 };
 
 // TODO paginate through collection (instead of downloading export)
-DataBuilder.prototype.buildCollectionItemsList = async function (
-  folder_id,
-  callback,
-) {
+DataBuilder.prototype.buildItemsList = async function (folder_id) {
   discogs.downloadCollectionItems(folder_id, async (data) => {
-    let collection_items = data["releases"];
-    for (let i in collection_items) {
-      this.fixUpItem(collection_items[i], async (fixed_up_item) => {
-        await storage.setItem(`item_${fixed_up_item["id"]}`, fixed_up_item);
+    let items = data["releases"];
+    for (let i in items) {
+      this.fixUpItem(items[i], async (fixed_up_item) => {
+        await pg.set("items", fixed_up_item["id"], fixed_up_item);
+        this.log(`item ${fixed_up_item["id"]} ${fixed_up_item["title"]}`);
         await delay(); // rate limited
       });
     }
-    callback();
   });
 };
 
 // Need to get full release data from API and merge with custom fields
 DataBuilder.prototype.fixUpItem = async function (raw_item, callback) {
-  const folders = await storage.getItem("folders");
-  const custom_fields = await storage.getItem("custom_fields");
   let fixed_up_item = {};
   discogs.downloadRelease(raw_item["id"], async (release) => {
-    release["custom_data"] = [];
+    let folder_dict = await pg.getFolder(raw_item["folder_id"]);
+
     release["folder"] = {
-      id: raw_item["folder_id"],
-      name: folders[raw_item["folder_id"]].name,
-      crate: folders[raw_item["folder_id"]].crate,
-      section: folders[raw_item["folder_id"]].section
+      id: folder_dict.id,
+      name: folder_dict.name,
+      crate: folder_dict.crate,
+      section: folder_dict.section
     };
+
+    release["custom_data"] = [];
     for (let i in raw_item["notes"]) {
-      raw_item["notes"][i]["name"] = custom_fields[raw_item["notes"][i]["field_id"]].name;
+      let field_dict = await pg.getField(Number(raw_item["notes"][i]["field_id"]));
+      raw_item["notes"][i]["name"] = field_dict.name;
       release["custom_data"].push(raw_item["notes"][i]);
     }
+
     fixed_up_item = release;
     this.log(`fixUpItem: ${fixed_up_item["id"]}`);
     callback(fixed_up_item);
