@@ -5,6 +5,7 @@
 const Discogs = require("../discogs.js");
 const discogs = new Discogs();
 
-test("TODO need mocks", async () => {
-  // TODO mock all these
+test("TODO mocks", async () => {
+  // see scripts/examine_discogs.js
+  return true;
 });

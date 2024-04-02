@@ -22,14 +22,11 @@ const CSV = require("csv-string");
 const Mailer = require("./mailer.js");
 const mailer = new Mailer();
 
-// make a loop pause to stay under api rate limit (60/min)
+// utility function for rate limited calls
 const delay = async (ms = 1050) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-// opts: flush: false, env: "production"|"development"|"test"
-let DataBuilder = function (opts) {
-  this.opts = opts;
-  this.db_dir = this.opts.env == "test" ? "tests/data" : ".node-persist/storage";
+let DataBuilder = function () {
   this.log_details = [];
 };
 
@@ -40,26 +37,14 @@ DataBuilder.prototype.mount = async function () {
 
 DataBuilder.prototype.unmount = async function () {
   await pg.end();
-  this.log(`unmount`);
+  this.log(`unmounted database ${pg.client.database}`);
 }
 
 DataBuilder.prototype.log = function (message) {
   let ts = new Date().toISOString();
-  let str = `[${this.opts.env} ${ts}] ${message}`;
+  let str = `[${ts}] ${message}`;
   this.log_details.push(str);
   console.log(str);
-};
-
-// CAREFUL:  flushing without rebuilding successfully breaks everything
-DataBuilder.prototype.flushDB = async function (flush, callback) {
-  if (flush) {
-    await this.storage.clear({dir: this.db_dir});
-    await this.storage.init({dir: this.db_dir}); // reinitialize empty database
-    this.log(`Flushed database at ${this.db_dir}`);
-  } else {
-    this.log(`Did not flush database at ${this.db_dir}`);
-  };
-  callback();
 };
 
 // {"34225": {folder}, "883838": {folder},...}
@@ -96,25 +81,35 @@ DataBuilder.prototype.buildFieldsList = async function () {
   });
 };
 
-// TODO paginate through collection (instead of downloading export)
-DataBuilder.prototype.buildItemsList = async function (folder_id) {
-  discogs.downloadCollectionItems(folder_id, async (data) => {
-    let items = data["releases"];
-    for (let i in items) {
-      this.fixUpItem(items[i], async (fixed_up_item) => {
-        await pg.set("items", fixed_up_item["id"], fixed_up_item);
-        this.log(`item ${fixed_up_item["id"]} ${fixed_up_item["title"]}`);
-        await delay(); // rate limited
-      });
-    }
-  });
+// Stubs are returned by Discogs.getCollectionPage.  They
+// need to be fixed up.  Stubs are combined with Releases to
+// make collection Items.
+DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
+  let i = 0;
+  for (i; i < stubs.length; i++) {
+    console.log(`processing stub ${i}`);
+    await this.fixUpItem(stubs[i], async (item) => {
+      await this.upsert('items', item.id, item);
+    });
+    await delay();
+  }
+  callback(i);
+};
+
+DataBuilder.prototype.upsert = async function (resource, key, value) {
+  try {
+    await pg.set(resource, key, value);
+    this.log(`upserted ${resource} ${key}`);
+  } catch (err) {
+    this.log(`pg err: ${err}`);
+  }
 };
 
 // Need to get full release data from API and merge with custom fields
-DataBuilder.prototype.fixUpItem = async function (raw_item, callback) {
+DataBuilder.prototype.fixUpItem = async function (stub, callback) {
   let fixed_up_item = {};
-  discogs.downloadRelease(raw_item["id"], async (release) => {
-    let folder_dict = await pg.getFolder(raw_item["folder_id"]);
+  discogs.downloadRelease(stub["id"], async (release) => {
+    let folder_dict = await pg.getFolder(stub["folder_id"]);
 
     release["folder"] = {
       id: folder_dict.id,
@@ -124,14 +119,13 @@ DataBuilder.prototype.fixUpItem = async function (raw_item, callback) {
     };
 
     release["custom_data"] = [];
-    for (let i in raw_item["notes"]) {
-      let field_dict = await pg.getField(Number(raw_item["notes"][i]["field_id"]));
-      raw_item["notes"][i]["name"] = field_dict.name;
-      release["custom_data"].push(raw_item["notes"][i]);
+    for (let i in stub["notes"]) {
+      let field_dict = await pg.getField(Number(stub["notes"][i]["field_id"]));
+      stub["notes"][i]["name"] = field_dict.name;
+      release["custom_data"].push(stub["notes"][i]);
     }
 
     fixed_up_item = release;
-    this.log(`fixUpItem: ${fixed_up_item["id"]}`);
     callback(fixed_up_item);
   });
 };

@@ -3,15 +3,20 @@
     node-postgres wrapper
 */
 
+require("dotenv").config();
 const { Client } = require("pg");
+var parse = require('pg-connection-string').parse;
 
 let PG = function () {
-  this.client = new Client({
-    host: "127.0.0.1",
-    port: 5432,
-    database: process.env.NODE_ENV == "test" ? "music_browser_test" : "music_browser",
-    user: "farmfreshmeth",
-  });
+  let db_url;
+  if (process.env.NODE_ENV == 'test') {
+    db_url = process.env.DATABASE_URL_TEST;
+  } else {
+    db_url = process.env.DATABASE_URL;
+  }
+  let conn_params = parse(db_url);
+  this.client = new Client(conn_params); // unparsed connection string not working
+  console.log(`Using database ${this.client.database}`);
 };
 
 PG.prototype.connect = async function () {
@@ -22,7 +27,14 @@ PG.prototype.connect = async function () {
   }
 };
 
-PG.prototype.test = async function () {
+// pass array of keys
+PG.prototype.delete = async function(resource, keys) {
+  let match_str = `(${keys.join(', ')})`;
+  let query = `DELETE FROM ${resource} WHERE key IN ${match_str}`;
+  return await this.client.query(query);
+};
+
+PG.prototype.helloWorld = async function () {
   const res = await this.client.query("SELECT $1::text as message", [
     "Hello world!",
   ]);

@@ -43,22 +43,25 @@ Discogs.prototype.downloadCustomFields = function (callback) {
   });
 };
 
+Discogs.prototype.totalCollectionItems = function (folder_id, callback) {
+  https_options.path = `/users/${process.env.DISCOGS_USER}/collection/folders/${folder_id}/releases?per_page=1`;
+  this.sendRequest((data) => {
+    callback(data.pagination.items);
+  });
+};
+
 /* Collection items include custom data.  Folder 0 is "All".
     Uses "Collection Items by Folder" endpoint
     https://www.discogs.com/developers/#page:user-collection,header:user-collection-collection-items-by-folder
 
-    Return data is paginated
+    This method fetches one page at a time
 */
-Discogs.prototype.downloadCollectionItems = function (folder_id = 0, callback) {
-  let per_page = 3; // max allowed 100
-  let page = 1; // let's start at the very beginning, a very good place to start
-  let pages = undefined; // we don't know how many pages until we do the first GET
+Discogs.prototype.getCollectionPage = function (folder_id, page, total_pages, callback) {
+  let per_page = process.env.PER_PAGE;
   let query = `?page=${page}&per_page=${per_page}&sort=artist&order=asc`;
-
-  // TODO loop through pages
   https_options.path = `/users/${process.env.DISCOGS_USER}/collection/folders/${folder_id}/releases${query}`;
-  this.sendRequest((collectionItems) => {
-    callback(collectionItems);
+  this.sendRequest(async (data) => {
+    callback(page, total_pages, data.releases);
   });
 }
 
@@ -66,7 +69,7 @@ Discogs.prototype.downloadCollectionItems = function (folder_id = 0, callback) {
 // https://www.discogs.com/developers/#page:database,header:database-release
 Discogs.prototype.downloadRelease = function (release_id, callback) {
   https_options.path = "/releases/" + release_id;
-  this.sendRequest((release) => {
+  this.sendRequest(async (release) => {
     callback(release);
   });
 };

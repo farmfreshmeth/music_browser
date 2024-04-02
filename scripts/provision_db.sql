@@ -15,6 +15,7 @@
   Usage:
     $ psql -U farmfreshmeth -d music_browser -f scripts/provision_db.sql
     $ psql -U farmfreshmeth -d music_browser_test -f scripts/provision_db.sql
+    $ heroku pg:psql postgresql-shaped-78815 --app music-browser -f scripts/provision_db.sql
 */
 
 DROP TABLE IF EXISTS folders, fields, items CASCADE;
@@ -36,15 +37,3 @@ CREATE TABLE items (
   value       jsonb
 );
 CREATE UNIQUE INDEX items_pk ON items (key);
-
-CREATE OR REPLACE FUNCTION truncate_tables(username TEXT) RETURNS void AS $$
-DECLARE
-    statements CURSOR FOR
-        SELECT tablename FROM pg_tables
-        WHERE tableowner = username AND schemaname = 'public';
-BEGIN
-    FOR stmt IN statements LOOP
-        EXECUTE 'TRUNCATE TABLE ' || quote_ident(stmt.tablename) || ' CASCADE;';
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql;

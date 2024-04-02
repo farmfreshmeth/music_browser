@@ -4,12 +4,12 @@
 
 const PG = require("../pg.js");
 const Collection = require("../collection.js");
-let collection;
 let pg = new PG();
+let collection;
 
 beforeAll(async () => {
-  await pg.connect();
   collection = new Collection(pg);
+  await pg.connect();
 });
 
 test("collection length", async () => {
@@ -70,7 +70,6 @@ test("item() handles number search_str", async () => {
 
 test("bad release_id returns undefined", async () => {
   let item = await collection.item("not_an_item");
-  console.log(item);
   expect(item).toBe(undefined);
 });
 

@@ -10,19 +10,21 @@ beforeAll(async () => {
 });
 
 test("hello world", async () => {
-  let res = await pg.test();
+  let res = await pg.helloWorld();
   expect(res).toBe("Hello world!");
 });
 
 test("set", async () => {
   let res = await pg.set("items", 1, JSON.stringify({ name: "json" }));
   expect(res).toBe(1);
+  await pg.delete('items', [1]);
 });
 
 test("get", async () => {
   let res = await pg.set("items", 2, JSON.stringify({ name: "flurp" }));
   res = await pg.get("items", 2);
   expect(res).toStrictEqual({ name: "flurp" });
+  await pg.delete('items', [2]);
 });
 
 test("getFolder", async () => {
