@@ -47,7 +47,7 @@ test("artist search returns a list of items", async () => {
 });
 
 test("title search returns a list of items", async () => {
-  let items = await collection.search("ankles", "release_title");
+  let items = await collection.search("ankles", "item_title");
   expect(items.length).toBe(1);
   expect(items[0].title).toBe("Ankles Aweigh");
 });

@@ -10,7 +10,7 @@ block content
 
       .item-details
         div released: #{item['year']}
-        div location: #{item['folder']}
+        div location: #{item['folder']['name']}
         each custom_field in item["custom_data"]
           if custom_field["name"] == "Media Condition"
             div #{custom_field["name"]}: #{custom_field["value"]}

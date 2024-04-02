@@ -3,7 +3,6 @@ var router = express.Router();
 
 router.get('/', async function(req, res, next) {
   let folders = await req.app.locals.collection.folders();
-  console.log(folders);
   res.render('folders', { title: 'Studio84', folders: folders });
 });
 

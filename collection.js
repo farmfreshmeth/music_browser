@@ -74,7 +74,7 @@ Collection.prototype.search = async function (search_str, search_target) {
           artist->>'name' ILIKE '%${search_str}%'
       `;
       break;
-    case 'release_title':
+    case 'item_title':
       query = `
         SELECT
           items.value,

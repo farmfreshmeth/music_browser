@@ -3,17 +3,19 @@
 */
 
 require("dotenv").config();
-// const storage = require("node-persist");
+var express = require("express");
+
 const PG = require("./pg.js");
 const Collection = require("./collection.js");
 var DataBuilder = require("./data_builder.js");
 const schedule = require("node-schedule");
 var createError = require("http-errors");
-var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var lessMiddleware = require("less-middleware");
 var logger = require("morgan");
+var http = require('http');
+var enforce = require('express-sslify');
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
@@ -28,10 +30,13 @@ if (process.env.NODE_ENV == "development") {
     force: true,
     debug: true,
   };
-} else {
+} else if (process.env.NODE_ENV == 'production') {
   var lessConfig = {
     render: { compress: true },
   };
+  app.use(enforce.HTTPS({ trustProtoHeader: true }));
+} else { // test
+  // NOOP
 }
 
 // attach to collection singleton wrapper for storage
