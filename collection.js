@@ -22,6 +22,11 @@
     -- an "Item" is a Release in a Collection (including custom data)
 */
 
+// make safe for single-quoted sql statements
+const sanitize = function (str) {
+  return str.replace(/'/g, "''")
+};
+
 var Collection = function (pg) {
   this.pg = pg;
 };
@@ -56,11 +61,13 @@ Collection.prototype.items = async function () {
 // TODO full text search (ts_value)
 Collection.prototype.search = async function (search_str, search_target) {
   if (search_str == "") { return [] };
+  search_str = sanitize(search_str);
   var regex = new RegExp(search_str, "gi");
   let query;
 
   switch (search_target) {
     case 'folder':
+      console.log(search_str);
       query = `SELECT value FROM items WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')`;
       break;
     case 'artist':

@@ -40,6 +40,10 @@ test("folder search returns a list of releases", async () => {
   expect(releases.length).toBe(2);
 });
 
+test("single quote escaped properly", async () => {
+  expect(async () => { await collection.search("16 Children's", "folder"); }).not.toThrow();
+});
+
 test("artist search returns a list of items", async () => {
   let items = await collection.search("annie", "artist");
   expect(items.length).toBe(1);
