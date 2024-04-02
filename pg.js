@@ -5,17 +5,18 @@
 
 require("dotenv").config();
 const { Client } = require("pg");
-var parse = require('pg-connection-string').parse;
 
 let PG = function () {
-  let db_url;
+  let conn_params = {};
   if (process.env.NODE_ENV == 'test') {
-    db_url = process.env.DATABASE_URL_TEST;
-  } else {
-    db_url = process.env.DATABASE_URL;
+    conn_params.connectionString = process.env.DATABASE_URL_TEST;
+  } else if (process.env.NODE_ENV == 'development') {
+    conn_params.connectionString = process.env.DATABASE_URL;
+  } else { // production
+    conn_params.connectionString = process.env.DATABASE_URL;
+    conn_params.ssl = { rejectUnauthorized: false };
   }
-  let conn_params = parse(db_url);
-  this.client = new Client(conn_params); // unparsed connection string not working
+  this.client = new Client(conn_params);
   console.log(`Using database ${this.client.database}`);
 };
 
