@@ -12,7 +12,6 @@
 require("dotenv").config();
 const Discogs = require("./discogs.js");
 const discogs = new Discogs();
-const storage = require("node-persist"); // DEPRECATED
 
 const PG = require("./pg.js");
 let pg = new PG();
