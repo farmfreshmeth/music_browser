@@ -50,6 +50,11 @@ test("artist search returns a list of items", async () => {
   expect(items[0].title).toBe("Annie (A New Musical)");
 });
 
+test("trims whitespace on search_str", async () => {
+  let items = await collection.search("  annie   ", "artist")
+  expect(items.length).toBe(1);
+});
+
 test("title search returns a list of items", async () => {
   let items = await collection.search("ankles", "item_title");
   expect(items.length).toBe(1);

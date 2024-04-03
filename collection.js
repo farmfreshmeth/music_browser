@@ -24,7 +24,9 @@
 
 // make safe for single-quoted sql statements
 const sanitize = function (str) {
-  return str.replace(/'/g, "''")
+  str = str.trim();
+  str = str.replace(/'/g, "''");
+  return str;
 };
 
 var Collection = function (pg) {
