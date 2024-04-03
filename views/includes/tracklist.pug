@@ -2,12 +2,15 @@
   table.pure-table
     thead
       tr
-        th #
+        th &nbsp;
         th track
-        th min
+        th dur
     tbody
       each track in item['tracklist']
-        tr
+        tr(valign="top")
           td #{track['position']}
-          td #{track['title']}
+          td
+            div(style="font-weight: bold") #{track['title']}
+            if track['artists']
+              div(style="font-size: 0.8em") #{track['artists'].map((a) => { return a['name'] }).join(', ')}
           td #{track['duration']}

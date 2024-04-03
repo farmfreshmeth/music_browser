@@ -2,20 +2,42 @@ extends layout
 
 block content
 
-  .pure-g
+  .pure-g.item
     .pure-u-1.pure-u-sm-2-5
       .item-artist #{item['artists'][0]['name']}
       .item-title #{item['title']}
       img.pure-img(src=item['images'][0]['uri'])
 
       .item-details
-        div released: #{item['year']}
-        div location: #{item['folder']['name']}
-        each custom_field in item["custom_data"]
-          if custom_field["name"] == "Media Condition"
-            div #{custom_field["name"]}: #{custom_field["value"]}
+        table.pure-table-horizontal(style="width: 100%; border: 0px;")
+          tbody
+            tr
+              td.row-label(width="50%;") Location
+              td #{item['folder']['name']}
+            tr
+              td.row-label Year
+              td #{item['year']}
+            tr
+              td.row-label Country
+              td #{item['country']}
+            each custom_field in item["custom_data"]
+              if custom_field["name"] == "Media Condition"
+                tr
+                  td.row-label #{custom_field["name"]}
+                  td #{custom_field["value"]}
 
+        div &nbsp;
         include includes/tracklist.pug
+
+        .artists
+          h3 Artists
+          each artist in item['artists']
+            div #{artist['name']}
+
+        .labels
+          h3 Labels
+          each label in item['labels']
+            img.pure-img(src=label['thumbnail_url'])
 
       div(style="margin-top: 20px;")
         a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs

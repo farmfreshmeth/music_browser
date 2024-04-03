@@ -48,6 +48,9 @@ hr {
   margin-top: 20px;
   margin-bottom: 20px;
 }
+.item .row-label {
+  font-style: italic;
+}
 .track-sm {
   font-size: 1.0em;
 }
