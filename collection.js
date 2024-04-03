@@ -67,8 +67,14 @@ Collection.prototype.search = async function (search_str, search_target) {
 
   switch (search_target) {
     case 'folder':
-      console.log(search_str);
-      query = `SELECT value FROM items WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')`;
+      query = `
+        SELECT
+          items.value,
+          items.value ->> 'artists_sort' AS artist
+        FROM items
+        WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')
+        ORDER BY artist ASC
+      `;
       break;
     case 'artist':
       query = `

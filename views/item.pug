@@ -15,19 +15,7 @@ block content
           if custom_field["name"] == "Media Condition"
             div #{custom_field["name"]}: #{custom_field["value"]}
 
-      .tracklist
-        table.pure-table
-          thead
-            tr
-              th #
-              th track
-              th min
-          tbody
-            each track in item['tracklist']
-              tr
-                td #{track['position']}
-                td #{track['title']}
-                td #{track['duration']}
+        include includes/tracklist.pug
 
       div(style="margin-top: 20px;")
         a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs

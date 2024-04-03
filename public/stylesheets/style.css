@@ -5,6 +5,7 @@ body {
   padding: 30px;
 }
 hr {
+  margin-top: 1em;
   border-top: 0.25px solid #ccc;
   border-bottom: 0px;
 }
@@ -48,7 +49,7 @@ hr {
   margin-bottom: 20px;
 }
 .track-sm {
-  font-size: 11px;
+  font-size: 1.0em;
 }
 .track-sm .track-position {
   display: inline-block;
