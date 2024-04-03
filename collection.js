@@ -70,10 +70,11 @@ Collection.prototype.search = async function (search_str, search_target) {
       query = `
         SELECT
           items.value,
-          items.value ->> 'artists_sort' AS artist
+          items.value ->> 'artists_sort' AS artist,
+          items.value ->> 'title' AS title
         FROM items
         WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')
-        ORDER BY artist ASC
+        ORDER BY artist ASC, title ASC
       `;
       break;
     case 'artist':
