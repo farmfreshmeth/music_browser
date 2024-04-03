@@ -80,21 +80,26 @@ Collection.prototype.search = async function (search_str, search_target) {
     case 'artist':
       query = `
         SELECT
-          items.value
+          items.value,
+          items.value ->> 'artists_sort' AS artist,
+          items.value ->> 'title' AS title
         FROM
           items,
           jsonb_array_elements(value -> 'artists') artist
         WHERE
           artist->>'name' ILIKE '%${search_str}%'
+        ORDER BY artist ASC, title ASC
       `;
       break;
     case 'item_title':
       query = `
         SELECT
           items.value,
+          items.value ->> 'artists_sort' AS artist,
           items.value ->> 'title' AS title
         FROM items
         WHERE items.value ->> 'title' ILIKE '%${search_str}%'
+        ORDER BY artist ASC, title ASC
       `;
       break;
     default:
