@@ -43,9 +43,14 @@ const delay = async function (ms = 1050) {
 
     for (let p = 1; p <= total_pages; p++) {
       console.log(`page ${p} of ${total_pages}`);
-      discogs.getCollectionPage(folder, p, total_pages, async (p, total_pages, stubs) => {
-        item_stubs = item_stubs.concat(stubs);
-      });
+      discogs.getCollectionPage(
+        folder,
+        p,
+        total_pages,
+        async (p, total_pages, stubs) => {
+          item_stubs = item_stubs.concat(stubs);
+        },
+      );
       await delay();
     }
 
@@ -53,6 +58,11 @@ const delay = async function (ms = 1050) {
     builder.processItemStubs(item_stubs, async (last) => {
       console.log(`done processing ${last} item stubs`);
       await builder.unmount();
+
+      mailer.send(
+        `DataBuilder report [${process.env.NODE_ENV} ${new Date().toISOString()}]`,
+        builder.log_details.join("\n"),
+      );
     });
   });
 })();
