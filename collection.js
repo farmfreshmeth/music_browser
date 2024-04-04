@@ -72,40 +72,61 @@ Collection.prototype.search = async function (search_str, search_target) {
       query = `
         SELECT
           items.value,
-          items.value ->> 'artists_sort' AS artist,
+          items.value ->> 'artists_sort' AS artists_sort,
           items.value ->> 'title' AS title
         FROM items
         WHERE (value -> 'folder' @> '{ "name": "${search_str}" }')
-        ORDER BY artist ASC, title ASC
+        ORDER BY artists_sort ASC, title ASC
       `;
       break;
+
     case 'artist':
       query = `
-        SELECT
-          items.value,
-          items.value ->> 'artists_sort' AS artist,
-          items.value ->> 'title' AS title
+        SELECT DISTINCT
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value
         FROM
           items,
-          jsonb_array_elements(value -> 'artists') artist
+          jsonb_array_elements(items.value -> 'artists') release_artists,
+          jsonb_array_elements(items.value -> 'tracklist') tracklist
         WHERE
-          artist->>'name' ILIKE '%${search_str}%'
-        ORDER BY artist ASC, title ASC
+          release_artists ->> 'name' ILIKE '%${search_str}%'
+          OR items.value ->> 'artists_sort' ILIKE '%${search_str}%'
+          OR tracklist ->> 'artists' ILIKE '%${search_str}%'
+        ORDER BY artists_sort ASC, title ASC
       `;
       break;
+
     case 'item_title':
       query = `
         SELECT
-          items.value,
-          items.value ->> 'artists_sort' AS artist,
-          items.value ->> 'title' AS title
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value
         FROM items
         WHERE items.value ->> 'title' ILIKE '%${search_str}%'
-        ORDER BY artist ASC, title ASC
+        ORDER BY artists_sort ASC, title ASC
       `;
       break;
+
+    case 'track_title':
+      query = `
+        SELECT
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value
+        FROM
+          items,
+          jsonb_array_elements(items.value -> 'tracklist') AS tracklist
+        WHERE
+          tracklist ->> 'title' ILIKE '%${search_str}%'
+        ;
+      `;
+      break;
+
     default:
-      // dunno
+      // NOOP
   }
 
   let res = await this.pg.client.query(query);
