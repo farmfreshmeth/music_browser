@@ -37,3 +37,7 @@ CREATE TABLE items (
   value       jsonb
 );
 CREATE UNIQUE INDEX items_pk ON items (key);
+CREATE INDEX idx_items ON items USING GIN (value);
+CREATE INDEX idx_artists_sort ON items USING GIN ((value -> 'artists_sort'));
+CREATE INDEX idx_release_title ON items USING GIN ((value -> 'title'));
+CREATE INDEX idx_release_artists ON items USING GIN ((value -> 'artists'));

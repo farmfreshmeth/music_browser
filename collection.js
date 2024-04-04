@@ -121,6 +121,7 @@ Collection.prototype.search = async function (search_str, search_target) {
           jsonb_array_elements(items.value -> 'tracklist') AS tracklist
         WHERE
           tracklist ->> 'title' ILIKE '%${search_str}%'
+        ORDER BY artists_sort ASC, title ASC
         ;
       `;
       break;

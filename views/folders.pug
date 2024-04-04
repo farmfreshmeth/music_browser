@@ -7,22 +7,25 @@ block header
 block content
   .pure-g(style="padding-top: 20px")
     form.pure-form(action='/items', method='GET')
-      input(name='search_str', value='', placeholder="search..." type='text')
       fieldset
+        input(name='search_str', value='', placeholder="search..." type='text')
         label.pure-radio(for='artist')
           input(id='artist' name='search_target', value='artist', type='radio' checked)
           .radio-label artist
         label.pure-radio(for='item_title')
           input(id='item_title' name='search_target', value='item_title', type='radio')
           .radio-label release title
+        label.pure-radio(for='track_title')
+          input(id='track_title' name='search_target', value='track_title', type='radio')
+          .radio-label track title
         input.pure-button.pure-button-primary#search(value='search', type='submit')
 
-      div
-        h3 Browse Crates & Folders
-        each folder in folders
-          .pure-u-1.pure-u-md-1-2.pure-u-lg-1-3
-            a.folder-tile(href="/items?search_str=" + folder["name_encoded"] + "&search_target=folder")
-              .folder-text #{folder['section']}
-              .crate-text Crate #{folder['crate']}
+    div
+      h3 Browse Crates & Folders
+      each folder in folders
+        .pure-u-1.pure-u-md-1-2.pure-u-lg-1-3
+          a.folder-tile(href="/items?search_str=" + folder["name_encoded"] + "&search_target=folder")
+            .folder-text #{folder['section']}
+            .crate-text Crate #{folder['crate']}
 
   script(src="/javascripts/folders.js")

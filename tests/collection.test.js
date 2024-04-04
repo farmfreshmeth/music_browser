@@ -61,8 +61,14 @@ test("trims whitespace on search_str", async () => {
   expect(items.length).toBe(1);
 });
 
-test("title search returns a list of items", async () => {
+test("release title search returns a list of items", async () => {
   let items = await collection.search("ankles", "item_title");
+  expect(items.length).toBe(1);
+  expect(items[0].title).toBe("Ankles Aweigh");
+});
+
+test("track title search returns a list", async () => {
+  let items = await collection.search("festa", "track_title");
   expect(items.length).toBe(1);
   expect(items[0].title).toBe("Ankles Aweigh");
 });
