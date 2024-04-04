@@ -15,8 +15,8 @@ block content
               td.row-label(width="50%;") Location
               td #{item['folder']['name']}
             tr
-              td.row-label Year
-              td #{item['year']}
+              td.row-label Released
+              td #{item['released_formatted']}
             tr
               td.row-label Country
               td #{item['country']}
@@ -34,10 +34,31 @@ block content
           each artist in item['artists']
             div #{artist['name']}
 
-        .labels
-          h3 Labels
-          each label in item['labels']
-            img.pure-img(src=label['thumbnail_url'])
+        if item['extraartists'].length > 0
+          h3 Credits
+          each extraartist in item['extraartists']
+            div #{extraartist['name']}
+            div(style="font-size: 0.8em;") #{extraartist['role']}
+            div &nbsp;
+
+        if item['notes']
+          h3 Notes
+          span(style="white-space: pre-wrap;") #{item['notes']}
+
+        if item['identifiers'].length > 0
+          h3 Identifiers
+          each id in item['identifiers']
+            div #{id['type']}
+            div #{id['value']}
+            div #{id['description']}
+            div &nbsp;
+
+        if item['labels']
+          .labels
+            h3 Labels
+            each label in item['labels']
+              div(style="margin-bottom: 5px;") #{label['name']} [#{label['catno']}]
+              img.pure-img(style="width: 50%; margin-bottom: 10px;", src=label['thumbnail_url'])
 
       div(style="margin-top: 20px;")
         a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs
