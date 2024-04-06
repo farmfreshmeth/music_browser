@@ -5,6 +5,8 @@
 
 require("dotenv").config();
 const { Client } = require("pg");
+const Logger = require("./logger.js");
+let logger = new Logger();
 
 let PG = function () {
   let conn_params = {};
@@ -17,14 +19,16 @@ let PG = function () {
     conn_params.ssl = { rejectUnauthorized: false };
   }
   this.client = new Client(conn_params);
-  console.log(`Using database ${this.client.database}`);
 };
 
 PG.prototype.connect = async function () {
   try {
     await this.client.connect();
+    await logger.connect(this); // use this connection for logging
+    this.logger = logger;
+    logger.log('pg.js', `Connected to ${this.client.database}`, 'info');
   } catch (err) {
-    console.log(err);
+    console.log('pg.js', err, 'fatal');
   }
 };
 
@@ -57,7 +61,7 @@ PG.prototype.set = async function (resource, key, value) {
     let res = await this.client.query(query, [key, value]);
     return res["rows"][0].result;
   } catch (err) {
-    console.log(err);
+    logger.log('pg.js', err, 'error');
     return err;
   }
 };
@@ -81,6 +85,7 @@ PG.prototype.getField = async function (id) {
 };
 
 PG.prototype.end = async function () {
+  await logger.log('pg.js', `Closing connection to ${this.client.database}`, 'info');
   await this.client.end();
 };
 
