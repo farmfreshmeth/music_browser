@@ -5,8 +5,6 @@
 
 require("dotenv").config();
 const { Client } = require("pg");
-const Logger = require("./logger.js");
-let logger = new Logger();
 
 let PG = function () {
   let conn_params = {};
@@ -22,14 +20,46 @@ let PG = function () {
 };
 
 PG.prototype.connect = async function () {
+  if (this.client._connected) { return; }
   try {
     await this.client.connect();
-    await logger.connect(this); // use this connection for logging
-    this.logger = logger;
-    logger.log('pg.js', `Connected to ${this.client.database}`, 'info');
+    if (process.env.DEBUG) { logger.log('pg.js', `Connected to ${this.client.database}`, 'info'); }
   } catch (err) {
     console.log('pg.js', err, 'fatal');
   }
+};
+
+// Fix up strings for insert/search
+PG.prototype.sanitize = function (str) {
+  str = str.trim();
+  str = str.replace(/'/g, "''");
+  return str;
+};
+
+PG.prototype.log_string = function (obj) {
+  return `[${obj.ts.toISOString()} ${obj.env}] ${obj.job} ${obj.level.toUpperCase()}: ${obj.message}`;
+};
+
+PG.prototype.log = async function (
+  job = '',
+  message = '',
+  level = 'info'
+) {
+  message = this.sanitize(message);
+  let query = `
+    INSERT INTO log (env, level, job, message)
+    VALUES ('${process.env.NODE_ENV}', '${level}', '${job}', '${message}')
+    RETURNING ts, env, level, job, message;
+  `;
+  let res = await this.client.query(query);
+  let entry = res.rows[0];
+  if (process.env.NODE_ENV == 'development') { console.log(this.log_string(entry)); }
+  return entry;
+};
+
+// sugar
+PG.prototype.execute = async function (query) {
+  return await this.client.query(query);
 };
 
 // pass array of keys
@@ -58,11 +88,14 @@ PG.prototype.set = async function (resource, key, value) {
     RETURNING key AS result \
   ";
   try {
+    if (process.env.NODE_ENV == 'development') {
+      this.logger.log('pg.js', this.sanitize(query), 'info');
+    }
     let res = await this.client.query(query, [key, value]);
     return res["rows"][0].result;
   } catch (err) {
-    logger.log('pg.js', err, 'error');
-    return err;
+    // Can't log error here b/c connection is fubar
+    console.log(query, err);
   }
 };
 
@@ -85,7 +118,7 @@ PG.prototype.getField = async function (id) {
 };
 
 PG.prototype.end = async function () {
-  await logger.log('pg.js', `Closing connection to ${this.client.database}`, 'info');
+  if (process.env.DEBUG) { await logger.log('pg.js', `Closing connection to ${this.client.database}`, 'info'); }
   await this.client.end();
 };
 
