@@ -116,7 +116,7 @@ PG.prototype.getField = async function (id) {
 
 PG.prototype.end = async function () {
   if (process.env.DEBUG) { await logger.log('pg.js', `Closing connection to ${this.client.database}`, 'info'); }
-  await this.client.end();
+  await this.client.end(); // ends the Pool.  no need to release clients unless checked out
 };
 
 module.exports = PG;
