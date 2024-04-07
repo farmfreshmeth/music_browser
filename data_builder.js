@@ -31,12 +31,16 @@ let DataBuilder = function () {
 
 DataBuilder.prototype.mount = async function () {
   await pg.connect();
-  this.log(`mount: ${JSON.stringify(pg['client']['connectionParameters'], null, 2)}`);
+  if (process.env.DEBUG) {
+    this.log(`mount: ${JSON.stringify(pg['client']['connectionParameters'], null, 2)}`);
+  }
 };
 
 DataBuilder.prototype.unmount = async function () {
   await pg.end();
-  this.log(`unmounted database ${pg.client.database}`);
+  if (process.env.DEBUG) {
+    this.log(`unmounted database ${pg.client.database}`);
+  }
 }
 
 DataBuilder.prototype.log = function (message) {
