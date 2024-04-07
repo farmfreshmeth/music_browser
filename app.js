@@ -13,7 +13,7 @@ var createError = require("http-errors");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var lessMiddleware = require("less-middleware");
-var http_logger = require("morgan");
+var logger = require("morgan");
 var http = require('http');
 var enforce = require('express-sslify');
 
@@ -50,7 +50,7 @@ if (process.env.NODE_ENV == "development") {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(http_logger("dev"));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -79,11 +79,7 @@ app.use(function (err, req, res, next) {
 
 // startup tasks
 app.on("listening", () => {
-
-  // schedule periodic db rebuild
-  if (process.env.NODE_ENV == "production") {
-    // TODO
-  };
+  // NOOP
 });
 
 module.exports = app;
