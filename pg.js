@@ -23,13 +23,7 @@ let PG = function () {
 };
 
 PG.prototype.connect = async function () {
-  if (this.client._connected) { return; }
-  try {
-    this.client = await this.pool.connect();
-    if (process.env.DEBUG) { logger.log('pg.js', `Connected to ${this.pool.database}`, 'info'); }
-  } catch (err) {
-    console.log('pg.js', err, 'fatal');
-  }
+  return; // no need to connect using Pool.  for backwards compat
 };
 
 // Fix up strings for insert/search
