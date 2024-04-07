@@ -6,7 +6,7 @@ const PG = require("../pg.js");
 let pg = new PG();
 
 beforeAll(async () => {
-  await pg.connect();
+  // await pg.connect();
 });
 
 test("hello world", async () => {
@@ -92,5 +92,5 @@ test("getField", async () => {
 });
 
 afterAll(async () => {
-  pg.end();
+  await pg.end();
 });

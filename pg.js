@@ -4,7 +4,7 @@
 */
 
 require("dotenv").config();
-const { Client } = require("pg");
+const { Pool } = require("pg");
 
 let PG = function () {
   let conn_params = {};
@@ -16,14 +16,17 @@ let PG = function () {
     conn_params.connectionString = process.env.DATABASE_URL;
     conn_params.ssl = { rejectUnauthorized: false };
   }
-  this.client = new Client(conn_params);
+  conn_params.allowExitOnIdle = true;
+
+  // this.client = new Client(conn_params);
+  this.client = new Pool(conn_params);
 };
 
 PG.prototype.connect = async function () {
   if (this.client._connected) { return; }
   try {
-    await this.client.connect();
-    if (process.env.DEBUG) { logger.log('pg.js', `Connected to ${this.client.database}`, 'info'); }
+    this.client = await this.pool.connect();
+    if (process.env.DEBUG) { logger.log('pg.js', `Connected to ${this.pool.database}`, 'info'); }
   } catch (err) {
     console.log('pg.js', err, 'fatal');
   }
