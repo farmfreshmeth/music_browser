@@ -10,7 +10,15 @@
         tr(valign="top")
           td #{track['position']}
           td
-            div(style="font-weight: bold") #{track['title']}
+            if track['lyrics']
+              div(style="font-weight: bold")
+                a(href=`/item/${item.key}/track/${track['position']}`) #{track['title']}
+            else
+              div(style="font-weight: bold") #{track['title']}
             if track['artists']
               div(style="font-size: 0.8em") #{track['artists'].map((a) => { return a['name'] }).join(', ')}
+
+            include track.pug
+
           td #{track['duration']}
+

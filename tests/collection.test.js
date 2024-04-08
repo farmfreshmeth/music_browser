@@ -80,18 +80,28 @@ test("empty search returns an empty list", async () => {
 
 test("item() returns a single collection item", async () => {
   let item = await collection.item("2891017");
-  expect(item[0].title).toBe("Honky Tonk Piano");
+  expect(item.title).toBe("Honky Tonk Piano");
 });
 
 test("item() handles number search_str", async () => {
-  let items = await collection.item(2891017); // returns 0 or 1 length list
-  expect(items.length).toBe(1);
-  expect(items[0].title).toBe("Honky Tonk Piano");
+  let item = await collection.item(2891017); // returns 0 or 1 length list
+  expect(item.title).toBe("Honky Tonk Piano");
 });
 
 test("bad release_id returns undefined", async () => {
   let item = await collection.item("not_an_item");
   expect(item).toBe(undefined);
+});
+
+test("gets lyrics", async () => {
+  let lyrics = await collection.lyrics(2406675, 'A4');
+  console.log(lyrics);
+  expect(lyrics[1].lyrics).toMatch(/^\[ANNIE\]\nThe sun will come out tomorrow/);
+});
+
+test("item merges lyrics", async () => {
+  let item = await collection.item(2406675);
+  expect(item.tracklist[3].lyrics).toMatch(/^\[ANNIE\]\nThe sun will come out tomorrow/);
 });
 
 afterAll(async () => {

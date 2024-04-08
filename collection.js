@@ -136,12 +136,48 @@ Collection.prototype.search = async function (search_str, search_target) {
 
 Collection.prototype.item = async function (key) {
   try {
-    let query = `SELECT value FROM items WHERE key = ${key}`;
-    let res = await this.pg.client.query(query);
-    return res.rows.map((i) => { return i.value; });
+    let query = `
+      SELECT
+        lyrics.item_key AS item_key,
+        lyrics.track_position AS track_position,
+        lyrics.lyrics,
+        items.value
+      FROM items LEFT JOIN lyrics ON
+        lyrics.item_key = items.key
+        AND lyrics.track_position = track_position
+      WHERE items.key = $1
+    `;
+    let values = [key];
+    let res = await this.pg.client.query(query, values);
+    let tracks = res.rows;
+
+    item = this.mergeLyrics(tracks);
+    return item;
   } catch (err) {
     return undefined;
   };
+};
+
+Collection.prototype.lyrics = async function (key) {
+  let query = `
+    SELECT * FROM lyrics WHERE item_key = $1 AND lyrics IS NOT NULL ORDER BY track_position
+  `;
+  let values = [key];
+  let res = await this.pg.client.query(query, values);
+  return res.rows;
+};
+
+Collection.prototype.mergeLyrics = function (lyrics_tracks) {
+  let item = lyrics_tracks[0].value;
+  lyrics_tracks.forEach((row) => {
+    console.log(row.track_position);
+    for (let i = 0; i < item['tracklist'].length; i++) {
+      if (item['tracklist'][i]['position'] == row.track_position) {
+        item['tracklist'][i]['lyrics'] = row.lyrics;
+      }
+    }
+  });
+  return item;
 };
 
 module.exports = Collection;

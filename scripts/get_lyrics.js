@@ -12,7 +12,7 @@ let lyrics = new Lyrics();
 const PG = require('../pg.js');
 let pg = new PG();
 
-const LIMIT = 5;
+const LIMIT = 25;
 
 // Grabs a list of tracks for which to attempt to fetch lyrics
 //  track: { item_key: , position: , title: , artist: }
