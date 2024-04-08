@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon --ignore tests/data/ ./bin/www",
+    "start": "node ./bin/www",
+    "dev": "nodemon --ignore tests/data/ ./bin/www",
     "test": "bash ./tests/test.sh"
   },
   "dependencies": {
