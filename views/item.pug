@@ -3,63 +3,64 @@ extends layout
 block content
 
   .pure-g.item
-    .pure-u-1.pure-u-sm-2-5
-      .item-artist #{item['artists'][0]['name']}
-      .item-title #{item['title']}
-      if item['images'] && item['images'].length > 0
-        img.pure-img(src=item['images'][0]['uri'])
+    #content-container.pure-u-1.pure-u-sm-2-5
+      #item-detail
+        .item-artist #{item['artists'][0]['name']}
+        .item-title #{item['title']}
+        if item['images'] && item['images'].length > 0
+          img.pure-img(src=item['images'][0]['uri'])
 
-      .item-details
-        table.pure-table-horizontal(style="width: 100%; border: 0px;")
-          tbody
-            tr
-              td.row-label(width="50%;") Location
-              td #{item['folder']['name']}
-            tr
-              td.row-label Released
-              td #{item['released_formatted']}
-            tr
-              td.row-label Country
-              td #{item['country']}
-            each custom_field in item["custom_data"]
-              if custom_field["name"] == "Media Condition"
-                tr
-                  td.row-label #{custom_field["name"]}
-                  td #{custom_field["value"]}
+        .item-details
+          table.pure-table-horizontal(style="width: 100%; border: 0px;")
+            tbody
+              tr
+                td.row-label(width="50%;") Location
+                td #{item['folder']['name']}
+              tr
+                td.row-label Released
+                td #{item['released_formatted']}
+              tr
+                td.row-label Country
+                td #{item['country']}
+              each custom_field in item["custom_data"]
+                if custom_field["name"] == "Media Condition"
+                  tr
+                    td.row-label #{custom_field["name"]}
+                    td #{custom_field["value"]}
 
-        div &nbsp;
-        include includes/tracklist.pug
+          div &nbsp;
+          include includes/tracklist.pug
 
-        .artists
-          h3 Artists
-          each artist in item['artists']
-            div #{artist['name']}
+          .artists
+            h3 Artists
+            each artist in item['artists']
+              div #{artist['name']}
 
-        if item['extraartists'].length > 0
-          h3 Credits
-          each extraartist in item['extraartists']
-            div #{extraartist['name']}
-            div(style="font-size: 0.8em;") #{extraartist['role']}
-            div &nbsp;
+          if item['extraartists'].length > 0
+            h3 Credits
+            each extraartist in item['extraartists']
+              div #{extraartist['name']}
+              div(style="font-size: 0.8em;") #{extraartist['role']}
+              div &nbsp;
 
-        if item['notes']
-          h3 Notes
-          span(style="white-space: pre-wrap;") #{item['notes']}
+          if item['notes']
+            h3 Notes
+            span.wrap #{item['notes']}
 
-        if item['identifiers'].length > 0
-          h3 Identifiers
-          each id in item['identifiers']
-            div #{id['type']}
-            div #{id['value']}
-            div #{id['description']}
-            div &nbsp;
+          if item['identifiers'].length > 0
+            h3 Identifiers
+            each id in item['identifiers']
+              div #{id['type']}
+              div #{id['value']}
+              div #{id['description']}
+              div &nbsp;
 
-        if item['labels']
-          .labels
-            h3 Labels
-            each label in item['labels']
-              div(style="margin-bottom: 5px;") #{label['name']} [#{label['catno']}]
-              img.pure-img(style="width: 50%; margin-bottom: 10px;", src=label['thumbnail_url'])
+          if item['labels']
+            .labels
+              h3 Labels
+              each label in item['labels']
+                div(style="margin-bottom: 5px;") #{label['name']} [#{label['catno']}]
+                img.pure-img(style="width: 50%; margin-bottom: 10px;", src=label['thumbnail_url'])
 
-      div(style="margin-top: 20px;")
-        a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs
+        div(style="margin-top: 20px;")
+          a.pure-button.pure-button-secondary(href=item['uri']) view on Discogs

@@ -17,6 +17,9 @@ hr {
   background-size: cover;
   position: relative;
 }
+.wrap {
+  white-space: pre-wrap;
+}
 .logo {
   content: url("/images/studio_84_logo.png");
 }
