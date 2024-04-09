@@ -41,7 +41,7 @@ let getTargetTracks = async function () {
     LIMIT ${LIMIT};
   `;
   let res = await pg.execute(query_string);
-  await pg.log('get_lyrics.js', `Attempting lyrics fetch for ${res.rows.length} tracks`, 'info');
+  await pg.log('get_lyrics', `Attempting lyrics fetch for ${res.rows.length} tracks`, 'info');
   return res.rows;
 };
 
@@ -62,7 +62,7 @@ let persist = async function(track) {
   target_tracks.forEach((track) => {
     lyrics.get(track, async (res) => {
       await persist(res);
-      pg.log('get_lyrics', `${track.item_key}`, 'info');
+      pg.log('get_lyrics', `${res.item_key} ${res.artist}, ${res.title}, ${res.lyrics != undefined}`, 'info');
     });
   });
 })();
