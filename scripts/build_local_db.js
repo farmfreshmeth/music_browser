@@ -27,7 +27,6 @@ let folder = 0; // 5396560; // soft rock.  34 items
 // utility function for rate limited calls
 const delay = async function (ms = 1050) {
   return new Promise((resolve) => {
-    console.log(`waiting ${ms} ms`);
     setTimeout(resolve, ms);
   });
 };
