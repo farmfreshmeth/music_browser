@@ -14,6 +14,9 @@ const https = require("https");
 const Spotify = function () {};
 
 Spotify.prototype.getClientAccessToken = function (callback) {
+
+  if (this.access_token && Date.now() < this.expires_at) callback();
+
   const form_data = new URLSearchParams({
     grant_type: "client_credentials",
   });
@@ -94,6 +97,7 @@ Spotify.prototype.sendRequest = function (path, query, callback) {
           headers: ${JSON.stringify(req.getHeaders(), null, 2)}
       `);
       req.end();
+      callback(res);
     }
 
     let data = "";
