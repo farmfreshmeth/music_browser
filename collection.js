@@ -170,7 +170,6 @@ Collection.prototype.lyrics = async function (key) {
 Collection.prototype.mergeLyrics = function (lyrics_tracks) {
   let item = lyrics_tracks[0].value;
   lyrics_tracks.forEach((row) => {
-    console.log(row.track_position);
     for (let i = 0; i < item['tracklist'].length; i++) {
       if (item['tracklist'][i]['position'] == row.track_position) {
         item['tracklist'][i]['lyrics'] = row.lyrics;

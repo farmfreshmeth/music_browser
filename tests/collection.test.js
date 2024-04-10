@@ -95,7 +95,6 @@ test("bad release_id returns undefined", async () => {
 
 test("gets lyrics", async () => {
   let lyrics = await collection.lyrics(2406675, 'A4');
-  console.log(lyrics);
   expect(lyrics[1].lyrics).toMatch(/^\[ANNIE\]\nThe sun will come out tomorrow/);
 });
 
