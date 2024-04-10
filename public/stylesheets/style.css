@@ -4,6 +4,9 @@ body {
 .content-container {
   padding: 30px;
 }
+h3 {
+  margin-bottom: 0.5em;
+}
 hr {
   margin-top: 1em;
   border-top: 0.25px solid #ccc;
