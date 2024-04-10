@@ -36,7 +36,7 @@ block content
             each artist in item['artists']
               div #{artist['name']}
 
-          if item['spotify'] && item['spotify']['id']
+          // if item['spotify'] && item['spotify']['id']
             .spotify-player
               h3 Preview on Spotify
               - let src = "https://open.spotify.com/embed/album/" + item['spotify']['id'] + "?utm_source=generator&theme=0";
