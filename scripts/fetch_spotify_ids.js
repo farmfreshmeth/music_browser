@@ -7,7 +7,7 @@ let spotify = new Spotify();
 const PG = require('../pg.js');
 let pg = new PG();
 
-const LIMIT = 500; // schedule this script.  LIMIT avoids 429s
+const LIMIT = 50; // schedule this script.  LIMIT avoids 429s
 
 // Spotify doesn't specify a requests-per-second, so try this
 const delay = async function (ms = 250) {
@@ -47,20 +47,31 @@ const update = async function (item_key, new_json) {
     let item = items[i];
     spotify.getClientAccessToken((data) => {
       spotify.search(item.artist, item.title, async (results) => {
+
         if (results.statusCode) {
           pg.log('fetch_spotify_ids', `http error: ${error}`, 'error');
+
         } else {
-          let spotify_item = results.albums.items[0];
-          if (spotify_item) {
-            pg.log('fetch_spotify_ids', `${item.key} ${item.artist} ${item.title} ${spotify_item.id}`, 'info');
-          } else {
-            pg.log('fetch_spotify_ids', `${item.key} ${item.artist} ${item.title} not found`, 'warn');
-            spotify_item = '{}';
+
+          let spitems = results.albums.items;
+          let spitem_match = {};
+          if (spitems.length > 0) {
+            spitems.forEach((spitem) => {
+              if (spotify.isMatch(item.artist, spitem.artists[0].name) && spotify.isMatch(item.title, spitem.name)) {
+                spitem_match = spitem;
+              }
+            });
+            if (Object.keys(spitem_match).length !== 0) {
+              pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}'/'${spitem_match.name}' ${spitem_match.id}`, 'info');
+            } else {
+              pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}' not found`, 'warn');
+            }
           }
-          await update(item.key, spotify_item);
-        }
-      });
-    });
+          await update(item.key, spitem_match);
+
+        } // non 200
+      }); // search
+    }); // token
     await delay();
   };
 })();

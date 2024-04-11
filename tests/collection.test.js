@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 test("collection length", async () => {
-  expect(await collection.length()).toBe(3);
+  expect(await collection.length()).toBe(706);
 });
 
 test("folders() returns list of folder objects", async () => {
@@ -32,12 +32,12 @@ test("folders() returns list of folder objects", async () => {
 
 test("collection.items returns all items", async () => {
   let items = await collection.items();
-  expect(items.length).toBe(3);
+  expect(items.length).toBe(706);
 });
 
 test("folder search returns a list of releases", async () => {
   let releases = await collection.search("05 Soundtracks", "folder");
-  expect(releases.length).toBe(2);
+  expect(releases.length).toBe(17);
 });
 
 test("single quote escaped properly", async () => {
@@ -69,7 +69,7 @@ test("release title search returns a list of items", async () => {
 
 test("track title search returns a list", async () => {
   let items = await collection.search("festa", "track_title");
-  expect(items.length).toBe(1);
+  expect(items.length).toBe(2);
   expect(items[0].title).toBe("Ankles Aweigh");
 });
 

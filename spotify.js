@@ -11,6 +11,8 @@
 require("dotenv").config();
 const https = require("https");
 
+const LIMIT = 30; // Spotify search limit
+
 const Spotify = function () {};
 
 Spotify.prototype.getClientAccessToken = function (callback) {
@@ -66,13 +68,24 @@ Spotify.prototype.getClientAccessToken = function (callback) {
   req.end();
 };
 
+// NOTE might need to escape the strings for single quotes
 Spotify.prototype.search = function (artist, album, callback) {
   let path = '/v1/search';
-  let query = `q=album:${album} artist:${artist}&type=album&limit=1`;
+  // let query = `q=album:${album} artist:${artist}&type=album&limit=${LIMIT}`;
+  let query = `q=artist:${artist}&type=album&limit=${LIMIT}`;
 
   this.sendRequest(path, query, (data) => {
     callback(data);
   });
+};
+
+// MISS The Who: 'Who's Next (Remastered 2022)' != 'Whos Next'
+Spotify.prototype.isMatch = function (str1, str2) {
+  if (str1 == str2) return true;
+
+  let regex = new RegExp(`^${str1}\\s?\\(?.*\\)?`); // ignore (Remastered 2022) etc.
+  let match = str2.match(regex);
+  return !!match; // truthy
 };
 
 // Common to API endpoints
