@@ -32,7 +32,6 @@ const delay = async function (ms = 1050) {
 };
 
 (async () => {
-  await builder.mount();
   await builder.buildFoldersList();
   await builder.buildFieldsList();
 
@@ -56,11 +55,10 @@ const delay = async function (ms = 1050) {
     console.log(`stubs: ${item_stubs.length}`);
     builder.processItemStubs(item_stubs, async (last) => {
       console.log(`done processing ${last} item stubs`);
-      await builder.unmount();
 
       mailer.send(
         `DataBuilder report [${process.env.NODE_ENV} ${new Date().toISOString()}]`,
-        builder.log_details.join("\n"),
+        `Processed ${item_stubs.length} stubs. See log for details`,
       );
     });
   });

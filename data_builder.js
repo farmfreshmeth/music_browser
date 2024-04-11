@@ -16,6 +16,9 @@ const discogs = new Discogs();
 const PG = require("./pg.js");
 let pg = new PG();
 
+const Collection = require('./collection.js');
+let collection = new Collection(pg);
+
 const fs = require("node:fs/promises");
 const CSV = require("csv-string");
 const Mailer = require("./mailer.js");
@@ -25,29 +28,10 @@ const mailer = new Mailer();
 const delay = async (ms = 1050) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-let DataBuilder = function () {
-  this.log_details = [];
-};
+let DataBuilder = function () {};
 
-DataBuilder.prototype.mount = async function () {
-  await pg.connect();
-  if (process.env.DEBUG) {
-    this.log(`mount: ${JSON.stringify(pg['client']['connectionParameters'], null, 2)}`);
-  }
-};
-
-DataBuilder.prototype.unmount = async function () {
-  await pg.end();
-  if (process.env.DEBUG) {
-    this.log(`unmounted database ${pg.client.database}`);
-  }
-}
-
-DataBuilder.prototype.log = function (message) {
-  let ts = new Date().toISOString();
-  let str = `[${ts}] ${message}`;
-  this.log_details.push(str);
-  console.log(str);
+DataBuilder.prototype.log = function (message, level = 'info') {
+  pg.log('data_builder', message, level)
 };
 
 // {"34225": {folder}, "883838": {folder},...}
@@ -84,17 +68,45 @@ DataBuilder.prototype.buildFieldsList = async function () {
   });
 };
 
+DataBuilder.prototype.getItem = async function (id) {
+  let query = `
+    SELECT value FROM items WHERE key = $1
+  `;
+  let values = [id];
+  let res = await pg.client.query(query, values);
+  if (res.rows.length > 0) {
+    return res.rows[0].value;
+  } else {
+    return undefined;
+  }
+};
+
 // Stubs are returned by Discogs.getCollectionPage.  They
 // need to be fixed up.  Stubs are combined with Releases to
 // make collection Items.
 DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
   let i = 0;
   for (i; i < stubs.length; i++) {
-    console.log(`processing stub ${i}`);
-    await this.fixUpItem(stubs[i], async (item) => {
-      await this.upsert('items', item.id, item);
-    });
-    await delay();
+    let stub = stubs[i];
+    let item = this.getItem(stub.id);
+    if (item) {
+      let folder = collection.getFolderStruct(stub.folder_id);
+      let custom_data = collection.getFieldsStruct(stub.notes);
+      let query = `
+        UPDATE items SET value =
+          jsonb_set(jsonb_set(value, '{folder}', $1), '{custom_data}', $2)
+        WHERE key = $3
+      `;
+      let values = [folder, custom_data, item.key];
+      await pg.client.query(query, values);
+      await pg.log('data_builder', `UPDATED ITEM ${item.key} ${item.title}`, 'info');
+    } else {
+      await this.fixUpItem(stubs[i], async (item) => {
+        await this.upsert('items', item.id, item);
+      });
+      await pg.log('data_builder', `NEW ITEM ${item.key} ${item.title}`, 'info');
+      await delay();
+    }
   }
   callback(i);
 };
@@ -110,26 +122,10 @@ DataBuilder.prototype.upsert = async function (resource, key, value) {
 
 // Need to get full release data from API and merge with custom fields
 DataBuilder.prototype.fixUpItem = async function (stub, callback) {
-  let fixed_up_item = {};
   discogs.downloadRelease(stub["id"], async (release) => {
-    let folder_dict = await pg.getFolder(stub["folder_id"]);
-
-    release["folder"] = {
-      id: folder_dict.id,
-      name: folder_dict.name,
-      crate: folder_dict.crate,
-      section: folder_dict.section
-    };
-
-    release["custom_data"] = [];
-    for (let i in stub["notes"]) {
-      let field_dict = await pg.getField(Number(stub["notes"][i]["field_id"]));
-      stub["notes"][i]["name"] = field_dict.name;
-      release["custom_data"].push(stub["notes"][i]);
-    }
-
-    fixed_up_item = release;
-    callback(fixed_up_item);
+    release["folder"] = collection.getFolderStruct(stub["folder_id"]);
+    release["custom_data"] = collection.getFieldsStruct(stub['notes']);
+    callback(release);
   });
 };
 

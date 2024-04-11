@@ -47,8 +47,45 @@ Collection.prototype.folders = async function () {
   return res.rows.map((f) => { return f.value; });
 };
 
-Collection.prototype.customFields = async function () {
-  return await this.storage.getItem("custom_fields");
+// Collection.prototype.customFields = async function () {
+//   return await this.storage.getItem("custom_fields");
+// };
+
+Collection.prototype.getFolderStruct = async function (folder_id) {
+  let folder_dict = await this.pg.get("folders", folder_id);
+  return {
+    id: folder_id,
+    name: folder_dict.name,
+    crate: folder_dict.crate,
+    section: folder_dict.section
+  };
+};
+
+Collection.prototype.getFieldsStruct = async function (notes) {
+  for (let i in notes) {
+    let field_dict = await this.pg.get('fields', Number(notes[i]["field_id"]));
+    notes[i]["name"] = field_dict.name;
+  }
+  return notes;
+};
+
+Collection.prototype.deepEquals = function (x, y) {
+  if (x === y) {
+    return true;
+  } else if ((typeof x == "object" && x != null) && (typeof y == "object" && y != null)) {
+    if (Object.keys(x).length != Object.keys(y).length) return false;
+
+    for (var prop in x) {
+      if (y.hasOwnProperty(prop)) {
+        if (! this.deepEquals(x[prop], y[prop])) return false;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return false;
+  }
 };
 
 // all items.  TODO paginate

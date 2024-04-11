@@ -63,34 +63,6 @@ test("log_string", () => {
   expect(pg.log_string(obj)).toBe(target);
 });
 
-test("getFolder", async () => {
-  let target = {
-    count: 717,
-    crate: "Al",
-    id: "0",
-    name: "All",
-    name_encoded: "All",
-    section: "",
-  };
-  let res = await pg.getFolder(0);
-  expect(res).toStrictEqual(target);
-
-  res = await pg.getFolder("0");
-  expect(res).toStrictEqual(target);
-});
-
-test("getField", async () => {
-  let target = {
-    "id": 5,
-    "name": "Commentary",
-  };
-  let res = await pg.getField(5);
-  expect(res).toStrictEqual(target);
-
-  res = await pg.getField("5");
-  expect(res).toStrictEqual(target);
-});
-
 afterAll(async () => {
   await pg.end();
 });

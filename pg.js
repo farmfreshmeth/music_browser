@@ -85,8 +85,8 @@ PG.prototype.set = async function (resource, key, value) {
     RETURNING key AS result \
   ";
   try {
-    if (process.env.NODE_ENV == 'development') {
-      this.logger.log('pg.js', this.sanitize(query), 'info');
+    if (process.env.DEBUG) {
+      this.log('pg.js', this.sanitize(query), 'info');
     }
     let res = await this.client.query(query, [key, value]);
     return res["rows"][0].result;
@@ -104,18 +104,8 @@ PG.prototype.get = async function (resource, key) {
   return res["rows"][0].value;
 };
 
-// TODO move to collection.js
-PG.prototype.getFolder = async function (id) {
-  return await this.get("folders", id);
-};
-
-// TODO move to collection.js
-PG.prototype.getField = async function (id) {
-  return await this.get("fields", id);
-};
-
 PG.prototype.end = async function () {
-  if (process.env.DEBUG) { await logger.log('pg.js', `Closing connection to ${this.client.database}`, 'info'); }
+  if (process.env.DEBUG) { await this.log('pg.js', `Closing connection to ${this.client.database}`, 'info'); }
   await this.client.end(); // ends the Pool.  no need to release clients unless checked out
 };
 

@@ -40,6 +40,60 @@ test("folder search returns a list of releases", async () => {
   expect(releases.length).toBe(17);
 });
 
+test("getFolderStruct", async () => {
+  let struct = await collection.getFolderStruct(5376838);
+  expect(struct).toStrictEqual({
+    "crate": "04",
+    "id": 5376838,
+    "name": "04 Disco",
+    "section": "Disco",
+  });
+});
+
+test("getFieldsStruct", async () => {
+  let notes = [
+    {
+      "field_id": 1,
+      "value": "Very Good (VG)"
+    },
+    {
+      "field_id": 2,
+      "value": "Very Good (VG)"
+    },
+    {
+      "field_id": 4,
+      "value": "Farm Freshmeth"
+    }
+  ]
+  let struct = await collection.getFieldsStruct(notes);
+  expect(struct).toStrictEqual([
+    {"field_id": 1, "name": "Media Condition", "value": "Very Good (VG)"},
+    {"field_id": 2, "name": "Sleeve Condition", "value": "Very Good (VG)"},
+    {"field_id": 4, "name": "Collection", "value": "Farm Freshmeth"}
+  ]);
+});
+
+test("deepEquals", () => {
+  let obj1 = {
+    a: '1',
+    b: [2, 3],
+    c: { d: '4' }
+  };
+  let obj2 = {
+    c: { d: '4' },
+    a: '1',
+    b: [2, 3]
+  };
+  expect(collection.deepEquals(obj1, obj2)).toBe(true);
+
+  let obj3 = {
+    a: 1,
+    b: ['3', 2],
+    c: { d: 4 }
+  };
+  expect(collection.deepEquals(obj1, obj3)).toBe(false);
+});
+
 test("single quote escaped properly", async () => {
   expect(async () => { await collection.search("16 Children's", "folder"); }).not.toThrow();
 });
