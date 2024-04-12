@@ -88,7 +88,7 @@ DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
   let i = 0;
   for (i; i < stubs.length; i++) {
     let stub = stubs[i];
-    let item = this.getItem(stub.id);
+    let item = await this.getItem(stub.id);
     if (item) {
       let folder = collection.getFolderStruct(stub.folder_id);
       let custom_data = collection.getFieldsStruct(stub.notes);
@@ -97,14 +97,14 @@ DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
           jsonb_set(jsonb_set(value, '{folder}', $1), '{custom_data}', $2)
         WHERE key = $3
       `;
-      let values = [folder, custom_data, item.key];
+      let values = [folder, custom_data, item.id];
       await pg.client.query(query, values);
-      await pg.log('data_builder', `UPDATED ITEM ${item.key} ${item.title}`, 'info');
+      await pg.log('data_builder', `UPDATED ITEM ${item.id} ${item.title}`, 'info');
     } else {
       await this.fixUpItem(stubs[i], async (item) => {
         await this.upsert('items', item.id, item);
+        await pg.log('data_builder', `NEW ITEM ${item.id} ${item.title}`, 'info');
       });
-      await pg.log('data_builder', `NEW ITEM ${item.key} ${item.title}`, 'info');
       await delay();
     }
   }
