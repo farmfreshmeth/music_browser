@@ -1,13 +1,15 @@
 doctype html
 html
   head
-    title= title
+    title=title
     meta(name="viewport" content="width=device-width, initial-scale=1")
 
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+
+    include includes/open_graph.pug
 
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js")
     script(src="/javascripts/site.js")
@@ -16,9 +18,9 @@ html
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
     block header
-      .hero-img
+      #top.hero-img
         a(href="/")
           img.logo.logo-sm
     .content-container
       block content
-      block footer
+      include includes/footer.pug

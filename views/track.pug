@@ -1,0 +1,15 @@
+extends layout
+
+block content
+
+  .track(id=track['position'])
+    div(style='font-style: italic;') #{item['artists'][0]['name']}
+    div
+      a(href=parentURL) #{item['title']}
+    h2(style='margin-top: 0.4em;margin-bottom: 3px;') #{track['title']}
+    div(style="font-size: 0.8em;color: #777;") Track #{track['position']}
+    div &nbsp;
+    .wrap #{track['lyrics']}
+
+    div &nbsp;
+    a.pure-button.lyrics(href=parentURL) Close

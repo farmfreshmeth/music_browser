@@ -106,3 +106,7 @@ a.folder-tile .crate-text {
   display: inline-block;
   margin-left: 5px;
 }
+.footer {
+  font-size: 0.8em;
+  color: #777;
+}

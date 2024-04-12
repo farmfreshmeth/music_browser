@@ -12,13 +12,18 @@
           td
             if track['lyrics']
               div(style="font-weight: bold")
-                a.lyrics(href='#' data-position=track['position']) #{track['title']}
+                a.lyrics(
+                  href=`/item/${item.id}/track/${track['position']}`
+                  data-title=track['title']
+                  data-position=track['position']
+                  data-artist=item.artists[0].name
+                  data-release=release_title
+                ) #{track['title']}
             else
               div(style="font-weight: bold") #{track['title']}
+
             if track['artists']
               div(style="font-size: 0.8em") #{track['artists'].map((a) => { return a['name'] }).join(', ')}
-
-            include track.pug
 
           td #{track['duration']}
 
