@@ -1,16 +1,32 @@
-//- <!--
-//-   if /items
-//-     logo
-//-     search term
-//-   else if /item
-//-     item image
-//-     title, artist
-//-   else if /item?track=A3
-//-     item image
-//-     title, artist, track name
-//-   else
-//-     logo
-//-     Studio 84
-//- -->
+//-- Include for Open Graph tags (link previews in social media)
 
-//- h1=JSON.stringify(path, null, 2)
+<title>Studio84</title>
+<meta name="description" content="Search & browse the Studio84 music collection">
+
+if track
+    <meta property="og:title" content="#{item.artists[0].name} - #{track.title}" />
+    <meta property="og:description" content="Studio84" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content=#{fullUrl} />
+    <meta property="og:image" content="#{item['images'][0]['resource_url']}" />
+
+else if (item && !track)
+    <meta property="og:title" content="#{item.artists[0].name} - #{item.title}" />
+    <meta property="og:description" content="Studio84" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content=#{fullUrl} />
+    <meta property="og:image" content="#{item['images'][0]['resource_url']}" />
+
+else if (items && !item && !track)
+    <meta property="og:title" content="Studio84" />
+    <meta property="og:description" content="#{search_target} search: '#{search_str}'" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content=#{fullUrl} />
+    <meta property="og:image" content="#{logoUrl}" />
+
+else if folders
+    <meta property="og:title" content="Studio84" />
+    <meta property="og:description" content="Search & browse the Studio84 music collection" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="#{fullUrl}" />
+    <meta property="og:image" content=#{logoUrl} />
