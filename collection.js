@@ -168,7 +168,11 @@ Collection.prototype.search = async function (search_str, search_target) {
   }
 
   let res = await this.pg.client.query(query);
-  return res.rows.map((i) => { return i.value; });
+  let items = res.rows.map((i) => {
+    i.value = this.addDefaultImage(i.value);
+    return i.value;
+  });
+  return items;
 };
 
 Collection.prototype.item = async function (key) {
@@ -189,6 +193,7 @@ Collection.prototype.item = async function (key) {
     let tracks = res.rows;
 
     item = this.mergeLyrics(tracks);
+    item = this.addDefaultImage(item);
     return item;
   } catch (err) {
     return undefined;
@@ -213,6 +218,20 @@ Collection.prototype.mergeLyrics = function (lyrics_tracks) {
       }
     }
   });
+  return item;
+};
+
+Collection.prototype.addDefaultImage = function (item) {
+  let logo = "/images/studio_84_logo.png";
+  if (!item.images) {
+    item.images = [{
+      resource_url: logo,
+      uri: logo,
+    }];
+  }
+  if (!item.thumb) {
+    item.thumb = logo;
+  }
   return item;
 };
 

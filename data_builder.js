@@ -20,7 +20,6 @@ const Collection = require('./collection.js');
 let collection = new Collection(pg);
 
 const fs = require("node:fs/promises");
-const CSV = require("csv-string");
 const Mailer = require("./mailer.js");
 const mailer = new Mailer();
 

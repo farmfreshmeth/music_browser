@@ -137,8 +137,15 @@ test("item() returns a single collection item", async () => {
   expect(item.title).toBe("Honky Tonk Piano");
 });
 
+test("item adds default image if necessary", async () => {
+  let item = await collection.item(29843833); // The Remittance Men
+  expect(item.images[0].uri).toBe('/images/studio_84_logo.png');
+  expect(item.images[0].resource_url).toBe('/images/studio_84_logo.png');
+  expect(item.thumb).toBe('/images/studio_84_logo.png');
+});
+
 test("item() handles number search_str", async () => {
-  let item = await collection.item(2891017); // returns 0 or 1 length list
+  let item = await collection.item(2891017);
   expect(item.title).toBe("Honky Tonk Piano");
 });
 
