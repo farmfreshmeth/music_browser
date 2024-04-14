@@ -1,10 +1,16 @@
 /*
   data_builder.test.js
+
+  TODO mock the API calls and test thoroughly.  In the
+  meantime, test manually
 */
 
 let Builder = require("../data_builder.js");
 let builder = {};
 const fs = require("node:fs/promises");
+
+let Discogs = require('../discogs.js');
+Discogs.prototype.downloadRelease = jest.fn(() => { console.log('mock'); });
 
 beforeAll(async () => {
   builder = new Builder();
@@ -17,14 +23,6 @@ test("getItem", async () => {
   item = await builder.getItem(9999999);
   expect(!item);
 });
-
-// test("processItemStubs", async () => {
-//   let stubs = await fs.readFile('./tests/data/stubs.json');
-//   builder.processItemStubs(stubs, (stub) => {
-//     // query db and examine values
-//     console.log(stub);
-//   });
-// });
 
 afterAll(async () => {
 });
