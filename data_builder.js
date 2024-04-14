@@ -91,7 +91,6 @@ DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
     if (item) {
       let folder = await collection.getFolderStruct(stub.folder_id);
       let custom_data = await collection.getFieldsStruct(stub.notes);
-      console.log(folder, custom_data);
       let query = `
         UPDATE items SET value =
           jsonb_set(jsonb_set(value, '{folder}', $1), '{custom_data}', $2)
