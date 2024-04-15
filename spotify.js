@@ -16,64 +16,62 @@ const LIMIT = 30; // Spotify search limit
 const Spotify = function () {};
 
 Spotify.prototype.getClientAccessToken = function (callback) {
-
-  if (this.access_token && Date.now() < this.expires_at) callback();
-
-  const form_data = new URLSearchParams({
-    grant_type: "client_credentials",
-  });
-
-  const options = {
-    hostname: "accounts.spotify.com",
-    path: "/api/token",
-    port: 443,
-    method: "POST",
-    auth: `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  };
-
-  const req = https.request(options, (res) => {
-    let data = "";
-
-    if (res.statusCode !== 200) {
-      console.error(`
-        Did not get an OK from the server. Code: ${res.statusCode}
-          path: https://${req.host}${req.path}
-          headers: ${JSON.stringify(req.getHeaders(), null, 2)}
-      `);
-      return;
-    }
-
-    res.on("data", (chunk) => {
-      data += chunk;
+  if (this.access_token && Date.now() < this.expires_at) {
+    callback(this.access_token);
+  } else {
+    const form_data = new URLSearchParams({
+      grant_type: "client_credentials",
     });
 
-    res.on("end", () => {
-      data = JSON.parse(data);
-      this.access_token = data.access_token;
-      this.token_type = data.token_type;
-      this.expires_in = data.expires_in;
-      let now = new Date();
-      this.expires_at = now.setSeconds(now.getSeconds() + data.expires_in);
-      callback(data);
-    });
-  })
-  .on("error", (err) => {
-    console.log("Error: ", err.message);
-  });
+    const options = {
+      hostname: "accounts.spotify.com",
+      path: "/api/token",
+      port: 443,
+      method: "POST",
+      auth: `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
 
-  req.write(form_data.toString());
-  req.end();
+    const req = https.request(options, (res) => {
+      let data = "";
+
+      if (res.statusCode !== 200) {
+        console.error(`
+          Did not get an OK from the server. Code: ${res.statusCode}
+            path: https://${req.host}${req.path}
+            headers: ${JSON.stringify(req.getHeaders(), null, 2)}
+        `);
+        return;
+      }
+
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        data = JSON.parse(data);
+        this.access_token = data.access_token;
+        this.token_type = data.token_type;
+        this.expires_in = data.expires_in;
+        let now = new Date();
+        this.expires_at = now.setSeconds(now.getSeconds() + data.expires_in);
+        callback(data);
+      });
+    })
+    .on("error", (err) => {
+      console.log("Error: ", err.message);
+    });
+
+    req.write(form_data.toString());
+    req.end();
+  }
 };
 
-// NOTE might need to escape the strings for single quotes
 Spotify.prototype.search = function (artist, album, callback) {
   let path = '/v1/search';
-  // let query = `q=album:${album} artist:${artist}&type=album&limit=${LIMIT}`;
   let query = `q=artist:${artist}&type=album&limit=${LIMIT}`;
-
   this.sendRequest(path, query, (data) => {
     callback(data);
   });

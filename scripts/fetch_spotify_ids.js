@@ -10,6 +10,8 @@ const Spotify = require('../spotify.js');
 let spotify = new Spotify();
 const PG = require('../pg.js');
 let pg = new PG();
+const Discogs = require('../discogs.js');
+let discogs = new Discogs();
 
 const LIMIT = 50; // schedule this script.  LIMIT avoids 429s
 
@@ -24,6 +26,7 @@ const getItems = async function () {
   let query = `
     SELECT
       items.key AS key,
+      items.value -> 'instance_id' AS instance_id,
       items.value ->> 'title' AS title,
       items.value #>> '{artists, 0, name}' AS artist,
       jsonb_path_query_array(items.value, '$.custom_data[*] ? (@.field_id == 6)') -> 0 -> 'value' AS spotify_id
@@ -36,11 +39,10 @@ const getItems = async function () {
   return res.rows;
 };
 
-const update = async function (item_key, new_json) {
-  if (!new_json) throw Error('null new_json');
+const update = async function (item, value) {
   let custom_field = {
     "name": "Spotify URL",
-    "value": new_json,
+    "value": value,
     "field_id": 6
   };
   query = `
@@ -48,8 +50,11 @@ const update = async function (item_key, new_json) {
       value = jsonb_set(value, '{custom_data,99}', $1)
     WHERE key = $2
   `;
-  let values = [custom_field, item_key];
+  let values = [custom_field, item.id];
   await pg.client.query(query, values);
+  discogs.updateCustomField(item.key, item.instance_id, 0, 6, value, (data) => {
+    pg.log('fetch_spotify_ids', `POST to Spotify ${item.key} ${item.title}`, 'info');
+  });
 };
 
 (async () => {
@@ -59,28 +64,24 @@ const update = async function (item_key, new_json) {
     let item = items[i];
     spotify.getClientAccessToken((data) => {
       spotify.search(item.artist, item.title, async (results) => {
-
+        let value = '';
         if (results.statusCode) {
-          pg.log('fetch_spotify_ids', `http error: ${error}`, 'error');
-
+          pg.log('fetch_spotify_ids', `http error: ${results.statusCode}`, 'error')
         } else {
-
           let spitems = results.albums.items;
-          let spitem_match = {};
-          if (spitems.length > 0) {
-            spitems.forEach((spitem) => {
-              if (spotify.isMatch(item.artist, spitem.artists[0].name) && spotify.isMatch(item.title, spitem.name)) {
-                spitem_match = spitem;
-              }
-            });
-            if (Object.keys(spitem_match).length !== 0) {
-              await update(item.key, spitem_match.external_urls.spotify);
-              pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}'/'${spitem_match.name}' ${spitem_match.id}`, 'info');
-            } else {
-              pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}' not found`, 'warn');
+          for (let i = 0; i < spitems.length; i++) {
+            let spitem = spitems[i];
+            if (spotify.isMatch(item.artist, spitem.artists[0].name) && spotify.isMatch(item.title, spitem.name)) {
+              value = spitem.external_urls.spotify;
+              pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}'/'${spitem.name}' ${spitem.id}`, 'info');
+              break;
             }
-          }
+          };
         } // non 200
+        if (value == '') {
+          pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}' not found`, 'warn');
+        }
+        await update(item, value);
       }); // search
     }); // token
     await delay();
