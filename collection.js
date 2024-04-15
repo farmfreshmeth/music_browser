@@ -194,6 +194,7 @@ Collection.prototype.item = async function (key) {
 
     item = this.mergeLyrics(tracks);
     item = this.addDefaultImage(item);
+    item = this.hoistSpotifyId(item);
     return item;
   } catch (err) {
     return undefined;
@@ -231,6 +232,17 @@ Collection.prototype.addDefaultImage = function (item) {
   }
   if (!item.thumb) {
     item.thumb = logo;
+  }
+  return item;
+};
+
+Collection.prototype.hoistSpotifyId = function (item) {
+  for (let i = 0; i < item.custom_data.length; i++) {
+    if (item.custom_data[i].field_id == 6) {
+      let arr = item.custom_data[i].value.split('/');
+      let id = arr[arr.length -1].split('?')[0];
+      item.spotify_id = id;
+    }
   }
   return item;
 };

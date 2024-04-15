@@ -56,14 +56,19 @@ Discogs.prototype.totalCollectionItems = function (folder_id, callback) {
 
     This method fetches one page at a time
 */
-Discogs.prototype.getCollectionPage = function (folder_id, page, total_pages, callback) {
+Discogs.prototype.getCollectionPage = function (
+  folder_id,
+  page,
+  total_pages,
+  callback,
+) {
   let per_page = process.env.PER_PAGE;
   let query = `?page=${page}&per_page=${per_page}&sort=artist&order=asc`;
   https_options.path = `/users/${process.env.DISCOGS_USER}/collection/folders/${folder_id}/releases${query}`;
   this.sendRequest(async (data) => {
     callback(page, total_pages, data.releases);
   });
-}
+};
 
 // Endpoint does not return custom data.  Uses "Release" endpoint
 // https://www.discogs.com/developers/#page:database,header:database-release
@@ -80,13 +85,12 @@ Discogs.prototype.sendRequest = function (callback) {
   let req = https.request(https_options, (res) => {
     if (res.statusCode !== 200) {
       console.error(`
-        Did not get an OK from the server. Code: ${res.statusCode}
+        Did not get an OK from the server. Code: ${res.statusCode} ${res.statusMessage}
           path: https://${req.host}${req.path}
           headers: ${JSON.stringify(req.getHeaders(), null, 2)}
       `);
-
       return;
-    };
+    }
 
     let data = "";
     res.on("data", (chunk) => {
@@ -104,6 +108,28 @@ Discogs.prototype.sendRequest = function (callback) {
   req.on("error", (e) => {
     console.error(e);
   });
+  req.end();
+};
+
+Discogs.prototype.updateCustomField = function (
+  item_id,
+  instance_id,
+  folder_id,
+  field_id,
+  new_value,
+  callback,
+) {
+  https_options.method = "POST";
+  https_options.path = `/users/${process.env.DISCOGS_USER}/collection/folders/${folder_id}/releases/${item_id}/instances/${instance_id}/fields/${field_id}`;
+  let req = https.request(https_options, (res) => {
+    res.on('data', function (chunk) {
+      callback(res.statusCode);
+    });
+    res.on('end', function () {
+      callback(`UPDATED ${https_options.path}`);
+    });
+  });
+  req.write(JSON.stringify({"value": new_value}));
   req.end();
 };
 

@@ -88,15 +88,16 @@ DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
   for (i; i < stubs.length; i++) {
     let stub = stubs[i];
     let item = await this.getItem(stub.id);
+    let instance_id = stub.instance_id;
     if (item) {
       let folder = await collection.getFolderStruct(stub.folder_id);
       let custom_data = await collection.getFieldsStruct(stub.notes);
       let query = `
         UPDATE items SET value =
-          jsonb_set(jsonb_set(value, '{folder}', $1), '{custom_data}', $2)
+          jsonb_set(jsonb_set(jsonb_set(value, '{instance_id}', $4), '{folder}', $1), '{custom_data}', $2)
         WHERE key = $3
       `;
-      let values = [JSON.stringify(folder), JSON.stringify(custom_data), item.id];
+      let values = [JSON.stringify(folder), JSON.stringify(custom_data), item.id, instance_id];
       await pg.client.query(query, values);
       await pg.log('data_builder', `UPDATED ITEM ${item.id} ${item.title}`, 'info');
     } else {
@@ -122,6 +123,7 @@ DataBuilder.prototype.upsert = async function (resource, key, value) {
 // Need to get full release data from API and merge with custom fields
 DataBuilder.prototype.fixUpItem = async function (stub, callback) {
   discogs.downloadRelease(stub["id"], async (release) => {
+    release["instance_id"] = stub.instance_id;
     release["folder"] = await collection.getFolderStruct(stub["folder_id"]);
     release["custom_data"] = await collection.getFieldsStruct(stub['notes']);
     callback(release);

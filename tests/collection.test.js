@@ -164,6 +164,11 @@ test("item merges lyrics", async () => {
   expect(item.tracklist[3].lyrics).toMatch(/^\[ANNIE\]\nThe sun will come out tomorrow/);
 });
 
+test("item hoists SpotifyId", async () => {
+  let item = await collection.item(2406675);
+  expect(item.spotify_id).toBe('0T1lQv20NNCoFlZkVHN3SQ');
+});
+
 afterAll(async () => {
   pg.end();
 });

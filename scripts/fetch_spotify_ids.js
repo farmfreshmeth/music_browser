@@ -1,5 +1,9 @@
 /*
   fetch_spotify_ids.js
+
+  ROUGH MATCH.  Some items will need to be edited
+  manually by setting the 'Spotify URL' custom field
+  in Discogs.
 */
 
 const Spotify = require('../spotify.js');
@@ -21,10 +25,11 @@ const getItems = async function () {
     SELECT
       items.key AS key,
       items.value ->> 'title' AS title,
-      items.value #>> '{artists, 0, name}' AS artist
+      items.value #>> '{artists, 0, name}' AS artist,
+      jsonb_path_query_array(items.value, '$.custom_data[*] ? (@.field_id == 6)') -> 0 -> 'value' AS spotify_id
     FROM items
     WHERE
-      items.value ->> 'spotify' IS NULL
+      NOT jsonb_path_exists(items.value, '$.custom_data[*] ? (@.field_id == 6)')
     LIMIT ${LIMIT}
   `;
   let res = await pg.client.query(query);
@@ -33,10 +38,17 @@ const getItems = async function () {
 
 const update = async function (item_key, new_json) {
   if (!new_json) throw Error('null new_json');
-  let query = `
-    UPDATE items SET value = jsonb_set(value, '{spotify}', $1) WHERE items.key = $2
+  let custom_field = {
+    "name": "Spotify URL",
+    "value": new_json,
+    "field_id": 6
+  };
+  query = `
+    UPDATE items SET
+      value = jsonb_set(value, '{custom_data,99}', $1)
+    WHERE key = $2
   `;
-  let values = [new_json, item_key];
+  let values = [custom_field, item_key];
   await pg.client.query(query, values);
 };
 
@@ -62,13 +74,12 @@ const update = async function (item_key, new_json) {
               }
             });
             if (Object.keys(spitem_match).length !== 0) {
+              await update(item.key, spitem_match.external_urls.spotify);
               pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}'/'${spitem_match.name}' ${spitem_match.id}`, 'info');
             } else {
               pg.log('fetch_spotify_ids', `${item.key} ${item.artist} '${item.title}' not found`, 'warn');
             }
           }
-          await update(item.key, spitem_match);
-
         } // non 200
       }); // search
     }); // token
