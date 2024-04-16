@@ -38,4 +38,13 @@ router.get('/item/:item_id/track/:track_position', async function(req, res, next
   });
 });
 
+router.get('/random', async function (req, res, next) {
+  let count = await req.app.locals.collection.length();
+  let offset = Math.floor(Math.random() * count);
+  let pg_res = await req.app.locals.collection.pg.client.query(`
+      SELECT key FROM items OFFSET $1 LIMIT 1
+    `, [offset]);
+  res.redirect(`/item/${pg_res.rows[0].key}`);
+});
+
 module.exports = router;
