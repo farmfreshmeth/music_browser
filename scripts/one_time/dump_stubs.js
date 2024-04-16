@@ -5,7 +5,7 @@
 */
 
 require("dotenv").config();
-const Discogs = require("../discogs.js");
+const Discogs = require("../../discogs.js");
 let discogs = new Discogs();
 const fs = require("node:fs/promises");
 
