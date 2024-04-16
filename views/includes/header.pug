@@ -1,0 +1,9 @@
+block header
+  .hero-img
+    a(href='/')
+      if imgClass
+        img.logo(class=imgClass)
+      else
+        img.logo.logo-sm
+
+    include menu.html

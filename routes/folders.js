@@ -11,6 +11,7 @@ router.get('/', async function(req, res, next) {
     folders: folders,
     fullUrl: og.fullUrl(req),
     logoUrl: og.logoUrl(req),
+    imgClass: 'logo-lg',
   });
 });
 
