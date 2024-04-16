@@ -21,6 +21,7 @@ var enforce = require('express-sslify');
 var foldersRouter = require("./routes/folders");
 var itemsRouter = require("./routes/items");
 var itemRouter = require("./routes/item");
+var wantsRouter = require("./routes/wants");
 
 var app = express();
 
@@ -59,6 +60,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(foldersRouter);
 app.use(itemsRouter);
 app.use(itemRouter);
+app.use(wantsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

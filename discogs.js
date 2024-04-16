@@ -133,4 +133,12 @@ Discogs.prototype.updateCustomField = function (
   req.end();
 };
 
+Discogs.prototype.getWantlist = function (page=1, per_page=50, callback) {
+  https_options.method = 'GET';
+  https_options.path = `/users/${process.env.DISCOGS_USER}/wants?page=${page}&per_page=${per_page}&sort=artist&sort_order=asc`;
+  this.sendRequest((res) => {
+    callback(res);
+  });
+};
+
 module.exports = Discogs;

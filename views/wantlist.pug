@@ -1,0 +1,12 @@
+extends layout
+
+block content
+
+  h3(style="padding-bottom: 1em;") Want List
+  for want in wants
+    img.pure-img(src=want.value.thumb)
+    div(style="color: #888;") #{want.artist}
+    div(style="font-style: italic;") #{want.title}
+    hr
+
+

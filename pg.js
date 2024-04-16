@@ -97,7 +97,7 @@ PG.prototype.set = async function (resource, key, value) {
 };
 
 PG.prototype.get = async function (resource, key) {
-  let query = `\
+  let query = `
     SELECT value FROM ${resource} WHERE key = ${key}
   `;
   let res = await this.client.query(query);

@@ -72,3 +72,11 @@ CREATE TABLE log (
   message       text
 );
 CREATE INDEX idx_ts ON log (ts);
+
+---- Migration 20240416 ----
+CREATE TABLE wants (
+  key            integer PRIMARY KEY,
+  value         jsonb
+);
+CREATE UNIQUE INDEX wants_pk ON wants (key);
+
