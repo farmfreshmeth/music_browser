@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 test("collection length", async () => {
-  expect(await collection.length()).toBe(706);
+  expect(await collection.length()).toBe(707);
 });
 
 test("folders() returns list of folder objects", async () => {
@@ -32,7 +32,7 @@ test("folders() returns list of folder objects", async () => {
 
 test("collection.items returns all items", async () => {
   let items = await collection.items();
-  expect(items.length).toBe(706);
+  expect(items.length).toBe(707);
 });
 
 test("folder search returns a list of releases", async () => {
@@ -165,8 +165,8 @@ test("item merges lyrics", async () => {
 });
 
 test("item hoists SpotifyId", async () => {
-  let item = await collection.item(2406675);
-  expect(item.spotify_id).toBe('0T1lQv20NNCoFlZkVHN3SQ');
+  let item = await collection.item(2916142);
+  expect(item.spotify_id).toBe('4uHwcjASOWAKw4P4wveKRb');
 });
 
 afterAll(async () => {
