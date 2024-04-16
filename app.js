@@ -42,7 +42,6 @@ if (process.env.NODE_ENV == "development") {
 // attach to collection singleton wrapper for storage
 (async () => {
   let pg = new PG();
-  await pg.connect();
   app.locals.collection = new Collection(pg);
 })();
 
