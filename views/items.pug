@@ -8,8 +8,9 @@ block content
 
   each item in items
     .pure-g.item_row(href="item/" + item.id)
-      .pure-u-1-1.pure-u-sm-1-5
+      .pure-u-1-1
         hr
+      .pure-u-1-1.pure-u-sm-1-5
         img.pure-img.thumb(src=item['thumb'] width="150px" height="150px")
       .pure-u-1-1.pure-u-sm-2-5(style="padding-top: 10px;")
         .item-artist #{item['artists_sort']}
