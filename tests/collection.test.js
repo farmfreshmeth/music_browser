@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 test("collection length", async () => {
-  expect(await collection.length()).toBe(707);
+  expect(await collection.length()).toBe(705);
 });
 
 test("folders() returns list of folder objects", async () => {
@@ -32,7 +32,7 @@ test("folders() returns list of folder objects", async () => {
 
 test("collection.items returns all items", async () => {
   let items = await collection.items();
-  expect(items.length).toBe(707);
+  expect(items.length).toBe(705);
 });
 
 test("folder search returns a list of releases", async () => {

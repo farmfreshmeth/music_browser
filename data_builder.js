@@ -98,8 +98,13 @@ DataBuilder.prototype.processItemStubs = async function (stubs, callback) {
         WHERE key = $3
       `;
       let values = [JSON.stringify(folder), JSON.stringify(custom_data), item.id, instance_id];
-      await pg.client.query(query, values);
-      await pg.log('data_builder', `UPDATED ITEM ${item.id} ${item.title}`, 'info');
+
+      try {
+        await pg.client.query(query, values);
+        await pg.log('data_builder', `UPDATED ITEM ${item.id} ${item.title}`, 'info');
+      } catch (err) {
+        await pg.log('data_builder', `ERROR UPDATING ${item.id} ${item.title}`, 'error');
+      }
     } else {
       await this.fixUpItem(stubs[i], async (item) => {
         await this.upsert('items', item.id, item);

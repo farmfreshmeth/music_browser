@@ -19,7 +19,7 @@
 */
 
 ---- Initial schema ----
-DROP TABLE IF EXISTS folders, fields, items, lyrics, state, log CASCADE;
+DROP TABLE IF EXISTS folders, fields, items, lyrics, state, log, wants CASCADE;
 
 CREATE TABLE folders (
   key         integer PRIMARY KEY,
