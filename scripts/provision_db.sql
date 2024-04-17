@@ -80,3 +80,6 @@ CREATE TABLE wants (
 );
 CREATE UNIQUE INDEX wants_pk ON wants (key);
 
+---- Migration 20240417 ----
+DELETE FROM items WHERE value IS NULL;
+ALTER TABLE items ALTER COLUMN value SET NOT NULL;

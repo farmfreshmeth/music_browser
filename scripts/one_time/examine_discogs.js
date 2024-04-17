@@ -4,7 +4,7 @@
     For testing/inspecting live API calls
 */
 
-const Discogs = require('../discogs.js');
+const Discogs = require('../../discogs.js');
 let discogs = new Discogs();
 let total_pages = 1;
 
@@ -17,9 +17,9 @@ const delay = (ms = 1050) =>
 //   console.log(`totalCollectionItems: ${total_pages}`);
 // });
 
-discogs.getCollectionPage(0, 1, total_pages, (page, total_pages, pageItems) => {
-  console.log(`got ${pageItems.length} items\n${JSON.stringify(pageItems, null, 2)}`);
-});
+// discogs.getCollectionPage(0, 1, total_pages, (page, total_pages, pageItems) => {
+//   console.log(`got ${pageItems.length} items\n${JSON.stringify(pageItems, null, 2)}`);
+// });
 
 // (async () => {
 //   for (let outer = 1; outer <= 50; outer++) {
@@ -30,3 +30,7 @@ discogs.getCollectionPage(0, 1, total_pages, (page, total_pages, pageItems) => {
 //     }
 //   }
 // })();
+
+discogs.downloadRelease(2714608, (res) => {
+  console.log(res);
+});
