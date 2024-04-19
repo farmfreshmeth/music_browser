@@ -6,9 +6,8 @@ require("dotenv").config();
 var express = require("express");
 
 const PG = require("./pg.js");
-const Collection = require("./collection.js");
-var DataBuilder = require("./data_builder.js");
-const schedule = require("node-schedule");
+var session = require('express-session')
+
 var createError = require("http-errors");
 var path = require("path");
 var cookieParser = require("cookie-parser");
@@ -17,6 +16,8 @@ var logger = require("morgan");
 var http = require('http');
 var enforce = require('express-sslify');
 
+const Collection = require("./collection.js");
+
 // Container page routes
 var foldersRouter = require("./routes/folders");
 var itemsRouter = require("./routes/items");
@@ -24,6 +25,23 @@ var itemRouter = require("./routes/item");
 var wantsRouter = require("./routes/wants");
 
 var app = express();
+
+// attach to pg and init Collection
+(async () => {
+  let pg = new PG();
+  app.locals.collection = new Collection(pg);
+
+  // init session store
+  app.use(session({
+    store: new (require('connect-pg-simple')(session))({
+      pool: pg,
+    }),
+    secret: process.env.COOKIE_SECRET,
+    resave: true,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+    saveUninitialized: false,
+  }));
+})();
 
 if (process.env.NODE_ENV == "development") {
   var lessConfig = {
@@ -39,12 +57,6 @@ if (process.env.NODE_ENV == "development") {
 } else { // test
   // NOOP
 }
-
-// attach to collection singleton wrapper for storage
-(async () => {
-  let pg = new PG();
-  app.locals.collection = new Collection(pg);
-})();
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
