@@ -14,4 +14,9 @@ OGTools.prototype.logoUrl = function (req) {
   return req.protocol + '://' + req.get('host') + '/images/studio_84_logo.png';
 };
 
+OGTools.randomWant = function (wants) {
+  let i = Math.floor(Math.random() * wants.length);
+  return wants[i];
+};
+
 module.exports = OGTools;

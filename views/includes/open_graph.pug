@@ -24,7 +24,14 @@ else if (items && !item && !track)
     <meta property="og:url" content=#{fullUrl} />
     <meta property="og:image" content="#{logoUrl}" />
 
-else if folders
+else if wants
+    <meta property="og:title" content="Studio84 Want List" />
+    <meta property="og:description" content="Looking for this and others..." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="#{fullUrl}" />
+    <meta property="og:image" content="#{random.value.cover_image}" />
+
+else
     <meta property="og:title" content="Studio84" />
     <meta property="og:description" content="Search & browse the Studio84 music collection" />
     <meta property="og:type" content="website" />
