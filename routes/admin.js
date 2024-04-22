@@ -14,11 +14,6 @@ router.get('/login', async function (req, res, next) {
   }
 });
 
-router.get('/logout', async function (req, res) {
-  req.session.destroy();
-  res.render('login', { message: 'Logged out' });
-});
-
 router.post('/login', async function (req, res, next) {
   let user = await User.authenticate(req.body.email, req.body.password);
   if (user) {
@@ -27,6 +22,11 @@ router.post('/login', async function (req, res, next) {
   } else {
     res.render('login', { error: 'Invalid email/password', email: req.body.email });
   }
+});
+
+router.get('/logout', async function (req, res) {
+  req.session.destroy();
+  res.render('login', { message: 'Logged out' });
 });
 
 module.exports = router;
