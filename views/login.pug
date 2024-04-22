@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  form.pure-form.pure-form-stacked(action="/login" method="post")
+    fieldset
+      div(style="color: red; margin-top: 1em; margin-bottom: 1em;") #{error}
+      div(style="margin-top: 1em; margin-bottom: 1em;") #{message}
+      label(for="stacked-email") Email
+      input#stacked-email(
+        name="email"
+        placeholder="me@example.com"
+        type="email"
+        value=email
+        autofocus
+        )
+      div &nbsp;
+      label(for="stacked-password") Password
+      input#stacked-password(
+        name="password"
+        placeholder="password"
+        type="password"
+        )
+      button.pure-button.pure-button-primary(type="submit") Log in

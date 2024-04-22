@@ -17,12 +17,15 @@ var http = require('http');
 var enforce = require('express-sslify');
 
 const Collection = require("./collection.js");
+let OGTools = require('./og_tools.js');
+let og = new OGTools();
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
 var itemsRouter = require("./routes/items");
 var itemRouter = require("./routes/item");
 var wantsRouter = require("./routes/wants");
+var adminRouter = require("./routes/admin");
 
 var app = express();
 
@@ -34,13 +37,15 @@ var app = express();
   // init session store
   app.use(session({
     store: new (require('connect-pg-simple')(session))({
-      pool: pg,
+      pool: pg.client,
     }),
     secret: process.env.COOKIE_SECRET,
     resave: true,
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
     saveUninitialized: false,
   }));
+
+  // app.locals.current_user = { first_name: 'Guest' };
 })();
 
 if (process.env.NODE_ENV == "development") {
@@ -69,10 +74,18 @@ app.use(cookieParser());
 app.use(lessMiddleware(path.join(__dirname, "public"), lessConfig));
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use((req, res, next) => {
+  res.locals.current_user = req.session.user;
+  res.locals.fullUrl = og.fullUrl(req);
+  res.locals.logoUrl = og.logoUrl(req);
+  next();
+});
+
 app.use(foldersRouter);
 app.use(itemsRouter);
 app.use(itemRouter);
 app.use(wantsRouter);
+app.use(adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

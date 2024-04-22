@@ -16,6 +16,7 @@ router.get('/item/:item_id', async function(req, res, next) {
       title: `${item.artists[0].name} - ${item.title}`,
       item: item,
       fullUrl: fullUrl,
+      current_user: res.locals.current_user,
     });
   } else {
     res.status(404).send("Not found.");
@@ -46,6 +47,7 @@ router.get('/item/:item_id/track/:track_position', async function(req, res, next
     track: track,
     parentURL: `/item/${req.params["item_id"]}`,
     fullUrl: fullUrl,
+    current_user: res.locals.current_user,
   });
 });
 

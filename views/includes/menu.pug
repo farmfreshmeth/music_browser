@@ -1,0 +1,18 @@
+.main-menu
+  // hamburger
+  input#navi-toggle.checkbox(type="checkbox")
+  label.button(for="navi-toggle")
+    span.icon
+  .background
+  // nav
+  nav.nav
+    ul.list
+      li.menu-item
+        a.link(href="/wantlist") Want List
+      li.menu-item
+        a.link(href="/random") Random Item
+      li.menu-item
+        if current_user
+          a.link(href="/logout") Log out
+        else
+          a.link(href="/login") Log in

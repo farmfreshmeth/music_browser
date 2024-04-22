@@ -20,7 +20,10 @@ router.get('/wantlist', async function(req, res, next) {
       title ASC
   `;
   let pg_res = await req.app.locals.collection.pg.client.query(query);
-  res.render('wantlist', {wants: pg_res.rows});
+  res.render('wantlist', {
+    wants: pg_res.rows,
+    current_user: res.locals.current_user,
+  });
 });
 
 module.exports = router;

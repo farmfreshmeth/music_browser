@@ -19,6 +19,7 @@ router.get('/items', async function(req, res, next) {
     count: items.length,
     fullUrl: og.fullUrl(req),
     logoUrl: og.logoUrl(req),
+    current_user: res.locals.current_user,
   });
 });
 

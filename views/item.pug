@@ -23,9 +23,13 @@ block content
                 td #{item['country']}
               each custom_field in item["custom_data"]
                 if custom_field["name"] == "Media Condition"
-                  tr
-                    td.row-label #{custom_field["name"]}
-                    td #{custom_field["value"]}
+                  mixin field
+                    tr
+                      td.row-label #{custom_field["name"]}
+                      td #{custom_field["value"]}
+                  +field
+                else if current_user && custom_field["name"] != 'Spotify URL'
+                  +field
 
           div &nbsp;
           include includes/tracklist.pug

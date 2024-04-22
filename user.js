@@ -6,14 +6,29 @@
 
 const PG = require("./pg.js");
 let pg = new PG();
-const User = function () {};
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-User.prototype.get = async function (email) {
+let User = function (record) {
+  this.email = record.email;
+  this.first_name = record.first_name;
+  this.last_name = record.last_name;
+  this.role = record.privileges.role;
+  this.authenticated = false;
+};
+
+User.authenticate = async function (email, cleartext) {
   let query = `SELECT * FROM users WHERE email = $1`;
   let res = await pg.client.query(query, [email]);
-  return res.rows[0];
+
+  let record = res.rows[0];
+  if (record && await bcrypt.compare(cleartext, record.password)) {
+    let user = new User(record);
+    user.authenticated = true;
+    return user;
+  } else {
+    return null;
+  }
 };
 
 // {
@@ -25,28 +40,32 @@ User.prototype.get = async function (email) {
 //     role: 'super_admin'
 //   },
 // }
-User.prototype.create = async function (params) {
-  let hash = await this.hash(params.cleartext);
+User.create = async function (params) {
+  let hashed_str = await hash(params.cleartext);
   let query = `
     INSERT INTO users (email, first_name, last_name, password, privileges)
     VALUES ($1, $2, $3, $4, $5)
   `;
-  let res = await pg.client.query(query, [
-    params.email,
-    params.first_name,
-    params.last_name,
-    hash,
-    params.privileges
-  ]);
-  return await this.get(params.email);
+  try {
+    let res = await pg.client.query(query, [
+      params.email,
+      params.first_name,
+      params.last_name,
+      hashed_str,
+      params.privileges
+    ]);
+    return new User({
+      email: params.email,
+      first_name: params.first_name,
+      last_name: params.last_name,
+      privileges: params.privileges,
+    });
+  } catch (err) {
+    return err;
+  }
 };
 
-User.prototype.authorize = async function (email, cleartext) {
-  let user = await this.get(email);
-  return await bcrypt.compare(cleartext, user.password);
-};
-
-User.prototype.hash = async function (cleartext) {
+let hash = async function (cleartext) {
   let salt = await bcrypt.genSalt(saltRounds);
   return await bcrypt.hash(cleartext, salt);
 };
