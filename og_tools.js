@@ -6,11 +6,11 @@
 
 const OGTools = function () {};
 
-OGTools.prototype.fullUrl = function (req) {
+OGTools.fullUrl = function (req) {
   return req.protocol + '://' + req.get('host') + req.originalUrl;
 };
 
-OGTools.prototype.logoUrl = function (req) {
+OGTools.logoUrl = function (req) {
   return req.protocol + '://' + req.get('host') + '/images/studio_84_logo.png';
 };
 

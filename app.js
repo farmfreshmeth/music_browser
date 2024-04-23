@@ -18,7 +18,6 @@ var enforce = require('express-sslify');
 
 const Collection = require("./collection.js");
 let OGTools = require('./og_tools.js');
-let og = new OGTools();
 
 // Container page routes
 var foldersRouter = require("./routes/folders");
@@ -76,8 +75,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
   res.locals.current_user = req.session.user;
-  res.locals.fullUrl = og.fullUrl(req);
-  res.locals.logoUrl = og.logoUrl(req);
+  res.locals.fullUrl = OGTools.fullUrl(req);
+  res.locals.logoUrl = OGTools.logoUrl(req);
   next();
 });
 

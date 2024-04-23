@@ -6,7 +6,6 @@ var express = require('express');
 var router = express.Router();
 
 router.get('/item/:item_id', async function(req, res, next) {
-  var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
   var item = await req.app.locals.collection.item(req.params["item_id"]);
 
   if (item) {
@@ -15,7 +14,7 @@ router.get('/item/:item_id', async function(req, res, next) {
       release_title: item.title,
       title: `${item.artists[0].name} - ${item.title}`,
       item: item,
-      fullUrl: fullUrl,
+      fullUrl: res.locals.fullUrl,
       current_user: res.locals.current_user,
     });
   } else {
@@ -46,7 +45,7 @@ router.get('/item/:item_id/track/:track_position', async function(req, res, next
     item: item,
     track: track,
     parentURL: `/item/${req.params["item_id"]}`,
-    fullUrl: fullUrl,
+    fullUrl: res.locals.fullUrl,
     current_user: res.locals.current_user,
   });
 });
