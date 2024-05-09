@@ -9,5 +9,6 @@ psql -U $username -d $database -f ./tests/data/folders.sql
 psql -U $username -d $database -f ./tests/data/fields.sql
 psql -U $username -d $database -f ./tests/data/items.sql
 psql -U $username -d $database -f ./tests/data/lyrics.sql
+psql -U $username -d $database -f ./tests/data/users.sql
 
 jest --runInBand --detectOpenHandles $@

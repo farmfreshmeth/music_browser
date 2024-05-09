@@ -9,11 +9,6 @@ beforeAll(async () => {
   // await pg.connect();
 });
 
-test("hello world", async () => {
-  let res = await pg.helloWorld();
-  expect(res).toBe("Hello world!");
-});
-
 test("sanitize", () => {
   let strings = [
     'single quoted',

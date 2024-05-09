@@ -66,13 +66,6 @@ PG.prototype.delete = async function(resource, keys) {
   return await this.client.query(query);
 };
 
-PG.prototype.helloWorld = async function () {
-  const res = await this.client.query("SELECT $1::text as message", [
-    "Hello world!",
-  ]);
-  return res.rows[0].message; // Hello world!
-};
-
 // Pass JS object as value
 PG.prototype.set = async function (resource, key, value) {
   let query =

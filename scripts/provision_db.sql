@@ -19,7 +19,9 @@
 */
 
 ---- Initial schema ----
-DROP TABLE IF EXISTS folders, fields, items, lyrics, state, log, wants, users CASCADE;
+DROP TABLE IF EXISTS
+  folders, fields, items, lyrics, log, wants,
+  notes, session, users CASCADE;
 
 CREATE TABLE folders (
   key         integer PRIMARY KEY,
@@ -107,3 +109,17 @@ CREATE UNIQUE INDEX idx_user_email ON users (email);
 
 ---- Migration 20240425-01 ----
 DROP TABLE state;
+
+---- Migration 20240425-02 ----
+CREATE TABLE notes (
+  id                serial PRIMARY KEY,
+  resource_id       varchar(64) NOT NULL,
+  resource_type     varchar(64) NOT NULL,
+  note              text,
+  created_at        timestamp NOT NULL DEFAULT NOW(),
+  updated_at        timestamp DEFAULT NOW(),
+  created_by        integer,
+  search            tsvector GENERATED ALWAYS AS (to_tsvector('english', note)) STORED
+);
+CREATE INDEX notes_vector ON notes USING gin(search);
+CREATE INDEX idx_resource ON notes (resource_id, resource_type);

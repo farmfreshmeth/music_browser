@@ -43,8 +43,6 @@ var app = express();
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
     saveUninitialized: false,
   }));
-
-  // app.locals.current_user = { first_name: 'Guest' };
 })();
 
 if (process.env.NODE_ENV == "development") {
