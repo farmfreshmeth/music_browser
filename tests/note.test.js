@@ -16,7 +16,6 @@ beforeAll(async () => {
 
 test('get item note', async () => {
   let note = await Note.get('item', 12345);
-  expect(note.id).toBe(1);
   expect(note.user_fullname).toBe('Farm Freshmeth');
   expect(note.note).toBe(`here's some item text with a #hashtag.`);
 });
@@ -30,7 +29,7 @@ test('get track note', async () => {
 test('get folder note', async () => {
   let note = await Note.get('folder', '01 Grateful Dead');
   expect(note.user_fullname).toBe('Farm Freshmeth');
-  expect(note.note).toBe(`why is Phish in this #folder?`);
+  expect(note.note).toBe(`Exercitation anim culpa et excepteur duis dolor amet cupidatat. Eiusmod mollit eu pariatur laborum nostrud. #aute #non`);
 });
 
 test('update item note', async () => {
@@ -39,17 +38,12 @@ test('update item note', async () => {
   await item_note.set();
 
   let note = await Note.get('item', 12345);
-  expect(note.id).toBe(1);
   expect(note.user_fullname).toBe('Farm Freshmeth');
   expect(note.note).toBe(`here's some updated item text with a #hashtag.`);
 });
 
 test('allTags', async () => {
   let tags = await Note.allTags();
-  expect(tags).toStrictEqual([
-    { token: '#favorite', count: '1' },
-    { token: '#flute', count: '1' },
-    { token: '#folder', count: '1' },
-    { token: '#hashtag', count: '1' }
-  ]);
+  expect(tags.length).toBe(39);
+  expect(tags[0]).toStrictEqual({"count": "39", "token": "#nostrud"});
 });

@@ -113,8 +113,8 @@ DROP TABLE state;
 ---- Migration 20240425-02 ----
 CREATE TABLE notes (
   id                serial PRIMARY KEY,
-  resource_id       varchar(64) NOT NULL,
-  resource_type     varchar(64) NOT NULL,
+  resource_id       varchar(256) NOT NULL,
+  resource_type     varchar(128) NOT NULL,
   note              text,
   created_at        timestamp NOT NULL DEFAULT NOW(),
   updated_at        timestamp DEFAULT NOW(),

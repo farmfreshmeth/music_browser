@@ -82,6 +82,8 @@ Note.get = async function (resource_type, resource_id) {
   }
 };
 
+// NOTE: the double slash \\s in '[\\s\?\.\!]' is unexpected.  Either
+// a bad reading of the docs or a bug in the node-pg lib.  May stop working...
 Note.allTags = async function () {
   let query = `
     SELECT token, count(*)

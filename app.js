@@ -25,6 +25,7 @@ var itemsRouter = require("./routes/items");
 var itemRouter = require("./routes/item");
 var wantsRouter = require("./routes/wants");
 var adminRouter = require("./routes/admin");
+var tagsRouter = require("./routes/tags");
 
 var app = express();
 
@@ -83,6 +84,7 @@ app.use(itemsRouter);
 app.use(itemRouter);
 app.use(wantsRouter);
 app.use(adminRouter);
+app.use(tagsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

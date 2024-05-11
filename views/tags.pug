@@ -1,0 +1,7 @@
+extends layout
+
+block content
+
+  h3(style="padding-bottom: 1em;") Tags
+  for tag in tags
+    div(style="color: #888;") #{tag.tag}
