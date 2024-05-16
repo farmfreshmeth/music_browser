@@ -56,7 +56,7 @@ const randomText = function () {
   let folders = await collection.folders();
   let random_folder_idxs = randomIndexes(folders.length, 4);
   random_folder_idxs.forEach(async (i) => {
-    let note = new Note(1, 'folder', folders[i].name, randomText());
+    let note = new Note(1, 'folder', folders[i].id, randomText());
     await note.set();
     console.log(`set note for ${folders[i].name}`);
   });

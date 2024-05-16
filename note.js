@@ -4,6 +4,8 @@
 
 const PG = require('./pg.js');
 let pg = new PG();
+const Collection = require('./collection.js');
+let collection = new Collection(pg);
 
 let Note = function (
     user_id,
@@ -47,7 +49,63 @@ Note.prototype.set = async function () {
   }
 };
 
-Note.get = async function (resource_type, resource_id) {
+const objectifyResults = function (rows) {
+  let notes = [];
+  rows.forEach((row) => {
+    var note = new Note (
+        row.user_id,
+        row.resource_type,
+        row.resource_id,
+        row.note,
+      );
+    note.id = row.id;
+    note.user_fullname = row.user_fullname;
+    notes.push(note);
+  });
+  return notes;
+};
+
+// polymorphism makes this challenging...
+Note.getNotesForTag = async function (tag) {
+  let query = `
+    SELECT
+      notes.id AS id,
+      notes.resource_type,
+      notes.resource_id,
+      to_char(notes.created_at, 'Mon DD, YYYY HH:MI pm') AS created_at,
+      notes.created_by,
+      notes.updated_at,
+      notes.note,
+      users.id AS user_id,
+      users.first_name || ' ' || users.last_name AS user_fullname,
+      items.value AS resource
+    FROM notes
+    LEFT JOIN users ON notes.created_by = users.id
+    LEFT JOIN items ON notes.resource_id::integer = items.key
+    WHERE note ~ $1 AND resource_type = 'item'
+    ORDER BY updated_at DESC
+  `;
+  let values = [tag];
+  let res = await pg.client.query(query, values);
+  return res.rows;
+};
+
+Note.prototype.getResource = async function () {
+  let resource;
+  if (this.resource_type == 'folder') {
+    resource = await collection.getFolderStruct(this.resource_id);
+  } else if (this.resource_type == 'track') {
+    let [item_key, track_position] = String(this.resource_id).split(':');
+    let item = await collection.item(item_key);
+    resource = item.tracklist.find((track) => track.position == track_position);
+    resource.item = item;
+  } else {
+    resource = await collection.item(this.resource_id);
+  }
+  return resource;
+};
+
+Note.getNotesForResource = async function (resource_type, resource_id) {
   let query = `
     SELECT
       notes.id AS id,
@@ -55,31 +113,17 @@ Note.get = async function (resource_type, resource_id) {
       notes.resource_id,
       notes.created_at,
       notes.created_by,
+      notes.updated_at,
       notes.note,
       users.id AS user_id,
       users.first_name || ' ' || users.last_name AS user_fullname
     FROM notes
     LEFT JOIN users ON notes.created_by = users.id
     WHERE resource_type = $1 AND resource_id = $2
+    ORDER BY updated_at DESC
   `;
-  try {
-    let res = await pg.client.query(query, [resource_type, resource_id]);
-    if (res.rows[0]) {
-      let note = new this (
-          res.rows[0].user_id,
-          res.rows[0].resource_type,
-          res.rows[0].resource_id,
-          res.rows[0].note,
-        );
-      note.id = res.rows[0].id;
-      note.user_fullname = res.rows[0].user_fullname;
-      return note;
-    } else {
-      return new Error(`note not found ${resource_type}/${resource_id}`)
-    }
-  } catch (err) {
-    return err;
-  }
+  let res = await pg.client.query(query, [resource_type, resource_id]);
+  return objectifyResults(res.rows);
 };
 
 // NOTE: the double slash \\s in '[\\s\?\.\!]' is unexpected.  Either
@@ -99,6 +143,6 @@ Note.allTags = async function () {
   return res.rows;
 };
 
-// TODO Note.search return item, track, or folder (or is this in Collection?)
-
 module.exports = Note;
+
+

@@ -1,0 +1,25 @@
+extends layout
+
+block content
+
+  .search-target tag search
+  .search-str #{tag}
+
+  .notes
+    each note in notes
+      .pure-g.item_row(href="/item/" + note.resource_id)
+        .pure-u-1-1
+          hr
+        .pure-u-1-1.pure-u-sm-1-5
+          img.pure-img.thumb(
+            src=note.resource.thumb width="100px" height="100px"
+            style="padding-bottom: 1em;"
+          )
+        .pure-u-1-1.pure-u-sm-3-5
+          .item-title #{note.resource.title}
+          .item-artist #{note.resource.artists[0].name}
+          p !{note.note.replace(tag, `<span class="highlighted">${tag}</span>`)}
+
+          .info Created by #{note.user_fullname} #{note.created_at}
+
+  script(src="/javascripts/notes.js")

@@ -17,6 +17,10 @@ hr {
   border-top: 0.25px solid #ccc;
   border-bottom: 0px;
 }
+.highlighted {
+  font-weight: bold;
+  color: #ff29a0;
+}
 .hero-img {
   background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/images/banner.png");
   height: 50%;
@@ -77,6 +81,9 @@ hr {
 }
 .track-sm .track-duration {
   display: inline-block;
+}
+.notes .info {
+  font-size: 0.7em;
 }
 a.folder-tile {
   display: block;

@@ -1,3 +1,4 @@
 /*
-  Site js
+  site.js for site-wide functions
 */
+

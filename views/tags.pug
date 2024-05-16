@@ -2,6 +2,12 @@ extends layout
 
 block content
 
-  h3(style="padding-bottom: 1em;") Tags
-  for tag in tags
-    div(style="color: #888;") #{tag.tag}
+  .pure-g
+    .pure-u-1-1
+      h3(style="padding-bottom: 1em;") Tags
+    for tag in tags
+      .pure-u-4-5
+        a(href=`/tags/${encodeURIComponent(tag.token)}`) #{tag.token}
+      .pure-u-1-5(style="text-align: right;")
+        i.fa-regular.fa-comment
+        span #{tag.count}
