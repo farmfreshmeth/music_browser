@@ -17,7 +17,11 @@ hr {
   border-top: 0.25px solid #ccc;
   border-bottom: 0px;
 }
-.highlighted {
+.note {
+  font-size: .85em;
+}
+.highlighted,
+.note > b {
   font-weight: bold;
   color: #ff29a0;
 }

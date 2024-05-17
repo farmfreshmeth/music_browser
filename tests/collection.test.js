@@ -127,6 +127,12 @@ test("track title search returns a list", async () => {
   expect(items[0].title).toBe("Ankles Aweigh");
 });
 
+test("collection notes", async () => {
+  let items = await collection.search("volupt", "collection_notes");
+  expect(items.length).toBe(29);
+  expect(items[0].title).toBe("Warmer Communications");
+});
+
 test("empty search returns an empty list", async () => {
   let releases = await collection.search("", "title");
   expect(releases.length).toBe(0);

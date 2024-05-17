@@ -66,6 +66,7 @@ const objectifyResults = function (rows) {
 };
 
 // polymorphism makes this challenging...
+// start with item-only notes
 Note.getNotesForTag = async function (tag) {
   let query = `
     SELECT

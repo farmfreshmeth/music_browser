@@ -159,9 +159,23 @@ Collection.prototype.search = async function (search_str, search_target) {
         WHERE
           tracklist ->> 'title' ILIKE '%${search_str}%'
         ORDER BY artists_sort ASC, title ASC
-        ;
       `;
       break;
+
+    case 'collection_notes':
+      query = `
+        SELECT
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value,
+          ts_headline(notes.note, to_tsquery('${search_str}')) AS note
+        FROM items
+        RIGHT JOIN notes ON items.key = notes.resource_id::integer
+        WHERE
+          notes.search @@ to_tsquery('${search_str}')
+          AND notes.resource_type = 'item'
+        ORDER BY artists_sort ASC, title ASC
+      `;
 
     default:
       // NOOP
@@ -170,6 +184,7 @@ Collection.prototype.search = async function (search_str, search_target) {
   let res = await this.pg.client.query(query);
   let items = res.rows.map((i) => {
     i.value = this.addDefaultImage(i.value);
+    i.value.collection_note = i.note;
     return i.value;
   });
   return items;

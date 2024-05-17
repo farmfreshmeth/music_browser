@@ -17,5 +17,8 @@ block content
         .item-title
           a(href="/item/" + item['id']) #{item['title']}
         div location: crate #{item['folder']['crate']}, section "#{item['folder']['section']}"
+        if item.collection_note
+          div &nbsp;
+          .note !{item.collection_note}
 
   script(src="/javascripts/items.js")
