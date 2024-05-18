@@ -34,6 +34,20 @@ block content
           div &nbsp;
           include includes/tracklist.pug
 
+          if notes.length > 0
+            .notes
+              h3 Collection Notes
+              ul
+                each note in notes
+                  include includes/note.pug
+
+          if current_user
+            form#note.pure-form(action='/notes', method='POST')
+              fieldset
+                input(name="resource_id" value=item.id hidden)
+                textarea.pure-input-1(name="note" value="note" placeholder='New collection note...' rows="5")
+              input.pure-button.pure-button-primary#search(value='Create Note', type='submit')
+
           .artists(style="margin-bottom:1.5em;")
             h3 Artists
             each artist in item['artists']
@@ -53,7 +67,7 @@ block content
               div &nbsp;
 
           if item['notes']
-            h3 Notes
+            h3 Release Notes
             span.wrap #{item['notes']}
 
           if item['identifiers'].length > 0

@@ -10,6 +10,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 let User = function (record) {
+  this.id = record.id;
   this.email = record.email;
   this.first_name = record.first_name;
   this.last_name = record.last_name;
@@ -45,6 +46,7 @@ User.create = async function (params) {
   let query = `
     INSERT INTO users (email, first_name, last_name, password, privileges)
     VALUES ($1, $2, $3, $4, $5)
+    RETURNING id
   `;
   try {
     let res = await pg.client.query(query, [
@@ -52,9 +54,10 @@ User.create = async function (params) {
       params.first_name,
       params.last_name,
       hashed_str,
-      params.privileges
+      params.privileges,
     ]);
     return new User({
+      id: res.rows[0].id,
       email: params.email,
       first_name: params.first_name,
       last_name: params.last_name,

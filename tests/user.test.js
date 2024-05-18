@@ -24,7 +24,8 @@ test("create", async () => {
   let query = `SELECT * FROM users WHERE email = 'person@example.com' LIMIT 1`;
   let res = await pg.client.query(query);
   let db_user = new User(res.rows[0]);
-  expect(db_user).not.toBe(undefined);
+  expect(db_user.id).toBe(2);
+  expect(db_user.email).toBe('person@example.com');
   expect(db_user).toStrictEqual(current_user);
 });
 

@@ -4,9 +4,11 @@
 
 var express = require('express');
 var router = express.Router();
+const Note = require('../note.js');
 
 router.get('/item/:item_id', async function(req, res, next) {
   var item = await req.app.locals.collection.item(req.params["item_id"]);
+  var notes = await Note.getNotesForResource('item', req.params.item_id);
 
   if (item) {
     res.render('item', {
@@ -16,6 +18,7 @@ router.get('/item/:item_id', async function(req, res, next) {
       item: item,
       fullUrl: res.locals.fullUrl,
       current_user: res.locals.current_user,
+      notes: notes,
     });
   } else {
     res.status(404).send("Not found.");

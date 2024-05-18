@@ -60,6 +60,7 @@ const objectifyResults = function (rows) {
       );
     note.id = row.id;
     note.user_fullname = row.user_fullname;
+    note.created_at = row.created_at;
     notes.push(note);
   });
   return notes;
@@ -112,7 +113,7 @@ Note.getNotesForResource = async function (resource_type, resource_id) {
       notes.id AS id,
       notes.resource_type,
       notes.resource_id,
-      notes.created_at,
+      to_char(notes.created_at, 'Mon DD, YYYY HH:MI pm') AS created_at,
       notes.created_by,
       notes.updated_at,
       notes.note,
