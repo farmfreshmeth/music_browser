@@ -1,5 +1,5 @@
 /*
-  tags.js router (should be notes.js)
+  tags.js router (might oughta be notes.js)
 */
 
 var express = require('express');
@@ -15,7 +15,7 @@ router.get('/tags/:tag', async function (req, res, next) {
 });
 
 router.post('/notes', async function (req, res, next) {
-  if (res.locals.current_user.authenticated) {
+  if (res.locals.current_user && res.locals.current_user.authenticated) {
     try {
       let note = new Note(
         res.locals.current_user.id,

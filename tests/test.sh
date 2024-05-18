@@ -11,5 +11,6 @@ psql -U $username -d $database -f ./tests/data/items.sql
 psql -U $username -d $database -f ./tests/data/lyrics.sql
 psql -U $username -d $database -f ./tests/data/users.sql
 psql -U $username -d $database -f ./tests/data/notes.sql
+psql -U $username -d $database -f ./tests/data/wants.sql
 
 jest --runInBand --detectOpenHandles $@

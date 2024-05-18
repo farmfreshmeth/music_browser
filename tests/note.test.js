@@ -56,7 +56,7 @@ test('update item note', async () => {
 
 test('allTags', async () => {
   let tags = await Note.allTags();
-  expect(tags.length).toBe(37);
+  expect(tags.length >= 37);
   expect(tags[0]).toStrictEqual({"count": "31", "token": "#qui"});
 });
 

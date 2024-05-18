@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "lorem-ipsum": "^2.0.8"
+    "lorem-ipsum": "^2.0.8",
+    "supertest": "^7.0.0"
   }
 }
