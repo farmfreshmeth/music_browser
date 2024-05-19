@@ -1,4 +1,4 @@
 #note
   li(style="padding-bottom: 0.5em;")
     div #{note.note}
-    .info Created by #{note.user_fullname} #{note.created_at}
+    .info Created by #{current_user ? note.user_fullname : '****'} #{note.created_at}

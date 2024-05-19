@@ -20,6 +20,6 @@ block content
           .item-artist #{note.resource.artists[0].name}
           p.note !{note.note.replace(tag, `<span class="highlighted">${tag}</span>`)}
 
-          .info Created by #{note.user_fullname} #{note.created_at}
+          .info Created by #{current_user ? note.user_fullname : '****'} #{note.created_at}
 
   script(src="/javascripts/notes.js")

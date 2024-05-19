@@ -11,7 +11,11 @@ router.get('/tags', async function (req, res, next) {
 });
 
 router.get('/tags/:tag', async function (req, res, next) {
-  res.render('notes', { tag: req.params.tag, notes: await Note.getNotesForTag(req.params.tag)});
+  res.render('notes', {
+    tag: req.params.tag,
+    notes: await Note.getNotesForTag(req.params.tag),
+    current_user: res.locals.current_user,
+  });
 });
 
 router.post('/notes', async function (req, res, next) {
