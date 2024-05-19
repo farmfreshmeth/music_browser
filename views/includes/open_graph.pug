@@ -31,6 +31,9 @@ else if wants
     <meta property="og:url" content="#{fullUrl}" />
     <meta property="og:image" content="#{random.value.cover_image}" />
 
+else if tags || tag
+    <!- omit opengraph for /tags ->
+
 else
     <meta property="og:title" content="Studio84" />
     <meta property="og:description" content="Search & browse the Studio84 music collection" />

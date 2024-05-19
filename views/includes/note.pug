@@ -1,4 +1,17 @@
 #note
   li(style="padding-bottom: 0.5em;")
     div #{note.note}
-    .info Created by #{current_user ? note.user_fullname : '****'} #{note.created_at}
+    .info
+      | Created by #{current_user ? note.user_fullname : '****'} #{note.created_at}
+      if current_user && note.user_id == current_user.id
+        form(method='post' action=`/note`)
+          input(type="hidden" name="method" value='delete')
+          input(type="hidden" name="id" value=note.id)
+          a.delete-note &nbsp;<i class="fa-regular fa-trash-can"></i>
+
+          script.
+            $('.delete-note').click((event) => {
+              if (confirm("Delete note?")) {
+                event.target.parentNode.parentNode.submit();
+              }
+            });

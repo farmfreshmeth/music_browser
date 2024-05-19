@@ -14,6 +14,19 @@ beforeAll(async () => {
   await folder_note.set();
 });
 
+test('get single note', async () => {
+  let note = await Note.get(1);
+  expect(note.note).toContain('Eu nostru');
+});
+
+test('delete note', async () => {
+  let note = await Note.get(1);
+  expect(note.note).toContain('Eu nostru');
+
+  expect(await note.delete()).toBe(1);
+  expect(await Note.get(1)).toBe(undefined);
+});
+
 test('getNotesForResource item', async () => {
   let notes = await Note.getNotesForResource('item', 628042);
   expect(notes[0].user_fullname).toBe('Farm Freshmeth');

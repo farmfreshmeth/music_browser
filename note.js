@@ -19,6 +19,15 @@ let Note = function (
   this.note = note;
 };
 
+Note.get = async function (id) {
+  let query = `
+    SELECT * FROM notes WHERE id = $1
+  `;
+  let res = await pg.client.query(query, [id]);
+  let notes = objectifyResults(res.rows);
+  return notes[0];
+};
+
 Note.prototype.set = async function () {
   let query, values;
   if (!this.id) {
@@ -47,6 +56,14 @@ Note.prototype.set = async function () {
   } catch (err) {
     throw err;
   }
+};
+
+Note.prototype.delete = async function () {
+  let query = `
+    DELETE FROM notes WHERE id = $1 RETURNING $1 AS id
+  `;
+  let res = await pg.client.query(query, [this.id]);
+  return res.rows[0].id;
 };
 
 const objectifyResults = function (rows) {

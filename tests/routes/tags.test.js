@@ -44,4 +44,12 @@ describe("tags route", () => {
     }).redirects(1);
     expect(res.text).toContain('testy test #mofo');
   });
+
+  it("should delete", async () => {
+    let res = await request(app).post('/note').send({
+      id: 3,
+      method: 'delete'
+    });
+    expect(res.header['location']).toBe('/item/5396731');
+  });
 });
