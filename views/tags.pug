@@ -3,11 +3,14 @@ extends layout
 block content
 
   .pure-g
-    .pure-u-1-1
-      h3(style="padding-bottom: 1em;") Tags
-    for tag in tags
-      .pure-u-4-5
-        a(href=`/tags/${encodeURIComponent(tag.token)}`) #{tag.token}
-      .pure-u-1-5(style="text-align: right;")
+    .pure-u-1-1.tags
+      h3(style="padding-bottom: .5em;")
         i.fa-regular.fa-comment
-        span #{tag.count}
+        | &nbsp; Tags
+      hr
+      for tag in tags
+        .tag
+          .pure-u-4-5
+            a(href=`/tags/${encodeURIComponent(tag.token)}`) #{tag.token}
+          .pure-u-1-5(style="text-align: right;")
+            span #{tag.count}
