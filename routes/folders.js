@@ -11,6 +11,7 @@ router.get('/', async function(req, res, next) {
     logoUrl: res.locals.logoUrl,
     imgClass: 'logo-lg',
     current_user: res.locals.current_user,
+    item: undefined, // clear potential vestigial item for opengraph
   });
 });
 
