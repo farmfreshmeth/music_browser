@@ -1,5 +1,8 @@
 /*
   music_browser
+
+  $ npm run dev
+  http://localhost:3000
 */
 
 require("dotenv").config();
