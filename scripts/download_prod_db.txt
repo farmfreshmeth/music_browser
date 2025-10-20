@@ -1,0 +1,8 @@
+# Backup, download, and restore prod db to local
+
+heroku pg:backups:capture --app music-browser
+heroku pg:backups:download --app music-browser
+
+# downloads to working dir as "latest.dump"
+
+pg_restore --verbose --clean --no-acl --no-owner -h localhost -d music_browser -U farmfreshmeth latest.dump

@@ -8,3 +8,4 @@ package-lock.json
 data/
 local/
 tests/seed_tests.js
+*.dump
