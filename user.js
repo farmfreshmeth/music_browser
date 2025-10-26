@@ -68,6 +68,23 @@ User.create = async function (params) {
   }
 };
 
+User.update_password = async function (params) {
+  let hashed_str = await hash(params.cleartext);
+  let query = `
+    UPDATE users SET password = $1
+    WHERE email = $2
+    RETURNING id
+  `;
+  try {
+    let res = await pg.client.query(query, [
+      hashed_str, params.email
+    ]);
+    return `Updated password for User ${res.rows[0].id}`;
+  } catch (err) {
+    return err;
+  }
+};
+
 let hash = async function (cleartext) {
   let salt = await bcrypt.genSalt(saltRounds);
   return await bcrypt.hash(cleartext, salt);
