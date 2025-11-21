@@ -23,7 +23,7 @@ describe("reports route", () => {
   });
 
   it("should render by_collection", async () => {
-    res = await request(app).get("/reports/by_owner?limit=10").set('Cookie', session).send();
+    res = await request(app).get("/reports/by_owner").set('Cookie', session).send();
     expect(res.statusCode).toEqual(200);
     expect(res.text).toContain('By Collection Owner');
   });

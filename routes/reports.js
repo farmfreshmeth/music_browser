@@ -40,9 +40,6 @@ router.get('/reports', async function(req, res, next) {
 router.get('/reports/:report_key', async function(req, res, next) {
   if (req.session.user && req.session.user.authenticated) {
     let report = REPORTS[req.params.report_key];
-
-    if (req.query.limit) { report.sql += ` LIMIT ${req.query.limit}` } // for tests
-
     let query_res = await pg.client.query(report.sql);
     res.render('report', {
       report: report,
