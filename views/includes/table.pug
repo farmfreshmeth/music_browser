@@ -1,0 +1,11 @@
+.report-table
+  table.pure-table
+    thead
+      tr
+        for value, key in data[0]
+          th= key
+    tbody
+      for row, idx in data
+        tr
+          for cell in row
+            td= cell

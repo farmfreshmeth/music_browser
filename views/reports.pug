@@ -1,0 +1,10 @@
+extends layout
+
+block content
+
+  h3(style="padding-bottom: 1em;") Reports
+  ul
+    each value, key in reports
+      div= JSON.stringify(report)
+      li
+        a(href= "/reports/" + key) #{value.name}

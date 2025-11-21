@@ -29,6 +29,7 @@ var itemRouter = require("./routes/item");
 var wantsRouter = require("./routes/wants");
 var adminRouter = require("./routes/admin");
 var tagsRouter = require("./routes/tags");
+var reportsRouter = require("./routes/reports");
 
 var app = express();
 
@@ -88,6 +89,7 @@ app.use(itemRouter);
 app.use(wantsRouter);
 app.use(adminRouter);
 app.use(tagsRouter);
+app.use(reportsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -7,6 +7,9 @@
   // nav
   nav.nav
     ul.list
+      if current_user
+        li.menu-item
+          a.link(href="/reports") Reports
       li.menu-item
         a.link(href="/tags") Tags
       li.menu-item
