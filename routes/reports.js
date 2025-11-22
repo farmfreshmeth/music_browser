@@ -63,7 +63,7 @@ const REPORTS = {
         COUNT(*) AS count
       FROM items
       GROUP BY artist
-      ORDER BY count DESC
+      ORDER BY count DESC, artist ASC
     `
   }
 };
