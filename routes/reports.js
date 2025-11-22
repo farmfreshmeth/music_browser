@@ -21,6 +21,50 @@ const REPORTS = {
       FROM items
       ORDER BY owner ASC, folder ASC, "artist -- title" ASC
     `
+  },
+
+  "crate_map": {
+    name: "Crates and Sections",
+    sql: `
+      SELECT
+        items.value -> 'folder' ->> 'name' AS folder,
+        COUNT (*) AS count
+      FROM items
+      GROUP BY folder
+      ORDER BY folder ASC
+    `
+  },
+
+  "count_by_crate": {
+    name: "Count by Crate",
+    sql: `
+      SELECT
+        SUBSTRING(items.value -> 'folder' ->> 'name', 1, 2) AS crate,
+        COUNT (*) AS count
+      FROM items
+      GROUP BY crate
+      ORDER BY crate ASC
+    `
+  },
+
+  "total_count": {
+    name: "Total Count",
+    sql: `
+      SELECT COUNT(*) AS items
+      FROM items
+    `
+  },
+
+  "count_by_artist": {
+    name: "Count by Artist",
+    sql: `
+      SELECT
+        items.value ->> 'artists_sort' AS artist,
+        COUNT(*) AS count
+      FROM items
+      GROUP BY artist
+      ORDER BY count DESC
+    `
   }
 };
 

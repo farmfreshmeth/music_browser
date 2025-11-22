@@ -17,6 +17,9 @@ hr {
   border-top: 0.25px solid #ccc;
   border-bottom: 0px;
 }
+.main-menu .nav {
+  padding-top: 10em;
+}
 .note {
   font-size: .85em;
 }
@@ -131,4 +134,7 @@ a.folder-tile .crate-text {
 .footer {
   font-size: 0.8em;
   color: #777;
+}
+.report-list li {
+  padding-top: 1em;
 }
