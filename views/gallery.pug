@@ -4,4 +4,64 @@ block content
 
   h3 Gallery
 
+  #gallery-carousel.carousel.slide
+    .carousel-indicators
+      button.active(
+        aria-label="Slide 1"
+        aria-current="true"
+        data-bs-slide-to="0"
+        data-bs-target="#gallery-carousel"
+        type="button"
+        )
+      button(
+        aria-label="Slide 2"
+        data-bs-slide-to="1"
+        data-bs-target="#gallery-carousel"
+        type="button"
+        )
+      button(
+        aria-label="Slide 3"
+        data-bs-slide-to="2"
+        data-bs-target="#gallery-carousel"
+        type="button"
+        )
+
+    .carousel-inner
+      .carousel-item.active
+        img.d-block.w-100(
+          alt="Photo of the Studio84 DJ booth with two Technics SL-1200 turntables and Mackie ProFx16v3 mixer."
+          src="images/gallery/dj_station.jpg"
+          )
+        .carousel-caption.d-none.d-md-block
+          p Two Technics SL-1200 turntables and Mackie ProFx16v3 mixer.
+      .carousel-item
+        img.d-block.w-100(
+          alt="Expanded shelving and light"
+          src="images/gallery/new_shelves.jpg"
+          )
+        .carousel-caption.d-none.d-md-block
+          p Custom crates, shelves, and lighting.
+      .carousel-item
+        img.d-block.w-100(
+          alt="Palmyra playing Studio84 August 2025."
+          src="images/gallery/palmyra.jpg"
+          )
+        .carousel-caption.d-none.d-md-block
+          p The band Palmyra playing Studio84 in August 2025.
+
+    button.carousel-control-prev(
+      data-bs-slide="prev"
+      data-bs-target="#gallery-carousel"
+      type="button"
+      )
+      span.carousel-control-prev-icon(aria-hidden="true")
+      span.visually-hidden Previous
+    button.carousel-control-next(
+      data-bs-slide="next"
+      data-bs-target="#gallery-carousel"
+      type="button"
+      )
+      span.carousel-control-next-icon(aria-hidden="true")
+      span.visually-hidden Next
+
   include includes/carousel.pug
