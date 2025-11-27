@@ -169,13 +169,31 @@ Collection.prototype.search = async function (search_str, search_target) {
           items.value ->> 'title' AS title,
           items.value,
           ts_headline(notes.note, to_tsquery('${search_str}')) AS note
-        FROM items
+        FROM
+          items
         RIGHT JOIN notes ON items.key = notes.resource_id::integer
         WHERE
           notes.search @@ to_tsquery('${search_str}')
           AND notes.resource_type = 'item'
         ORDER BY artists_sort ASC, title ASC
       `;
+      break;
+
+    case 'discogs_notes':
+      query = `
+        SELECT
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value
+        FROM
+          items,
+          jsonb_path_query_first(items.value, '$.custom_data[*] ? (@.field_id == 3)."value"') AS note
+        WHERE
+          note::text ILIKE '%${search_str}%'
+        ORDER BY artists_sort ASC, title ASC
+      `;
+      console.log(query);
+      break;
 
     default:
       // NOOP
