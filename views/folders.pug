@@ -9,9 +9,10 @@ block content
             option(value='artist') by artist
             option(value='item_title') by release title
             option(value='track_title') by track title
-            option(value='collection_notes') by local notes
-            option(value='discogs_notes') by discogs notes
             option(value='release_year') by release year
+            if current_user
+              option(value='collection_notes') by local notes
+              option(value='discogs_notes') by discogs notes
 
         .pure-u-1-1
           input.pure-input-1(name='search_str', value='', placeholder="search terms..." type='text')

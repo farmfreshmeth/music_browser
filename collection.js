@@ -162,6 +162,7 @@ Collection.prototype.search = async function (search_str, search_target) {
       `;
       break;
 
+    // TODO require auth
     case 'collection_notes':
       query = `
         SELECT
@@ -179,6 +180,7 @@ Collection.prototype.search = async function (search_str, search_target) {
       `;
       break;
 
+    // TODO require auth
     case 'discogs_notes':
       query = `
         SELECT
@@ -206,7 +208,6 @@ Collection.prototype.search = async function (search_str, search_target) {
           (items.value -> 'year')::integer = ${search_str}
         ORDER BY artists_sort ASC, title ASC
       `;
-      console.log(query);
       break;
 
     default:
