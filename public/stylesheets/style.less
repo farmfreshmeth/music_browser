@@ -1,9 +1,20 @@
+// Variables
+@pink:          #ff29a0;
+@blue:          #29A0FF;
+
+// Styles
+
 html, body {
   max-width: 100%;
   overflow-x: hidden;
+  background: #fff;
 }
 
-body { font: 16px "Lucida Grande", Helvetica, Arial, sans-serif; }
+body {
+  font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+  color: #333;
+  a { color: @blue; }
+}
 
 .content-container { padding: 30px; }
 
@@ -66,28 +77,26 @@ hr {
   }
 }
 
-a.folder-tile {
+.folder-tile {
   display: block;
-  background: #444;
+  background: @blue;
   margin: 4px;
   padding: 10px;
   text-align: center;
-  border-radius: 5px;
-  color: white;
+  border-radius: 0px;
+  color: #fff;
   font-weight: bold;
   line-height: 1.1em;
 
-  a:link { text-decoration: none; }
-  a:visited { text-decoration: none; }
-  a:hover { text-decoration: none; }
-  a:active { text-decoration: none; }
+  text-decoration: none;
+
   .folder-text { font-size: 1.3em; }
-  .crate-text { font-size: 0.75em; }
+  .crate-text { font-size: 0.75em; padding-top: 0.5em; }
 }
 
-.radio-label {
-  display: inline-block;
-  margin-left: 5px;
+#search {
+  background: @blue;
+  color: #fff;
 }
 
 .footer {
