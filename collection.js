@@ -192,6 +192,20 @@ Collection.prototype.search = async function (search_str, search_target) {
           note::text ILIKE '%${search_str}%'
         ORDER BY artists_sort ASC, title ASC
       `;
+      break;
+
+    case 'release_year':
+      query = `
+        SELECT
+          items.value ->> 'artists_sort' AS artists_sort,
+          items.value ->> 'title' AS title,
+          items.value
+        FROM
+          items
+        WHERE
+          (items.value -> 'year')::integer = ${search_str}
+        ORDER BY artists_sort ASC, title ASC
+      `;
       console.log(query);
       break;
 

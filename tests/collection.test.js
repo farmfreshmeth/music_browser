@@ -127,10 +127,22 @@ test("track title search returns a list", async () => {
   expect(items[0].title).toBe("Ankles Aweigh");
 });
 
-test("collection notes", async () => {
+test("collection notes search", async () => {
   let items = await collection.search("volupt", "collection_notes");
   expect(items.length).toBe(29);
   expect(items[0].title).toBe("Warmer Communications");
+});
+
+test("discogs notes search", async () => {
+  let items = await collection.search("lefevre", "discogs_notes");
+  expect(items.length).toBe(2);
+  expect(items[0].title).toBe("The Slavonic Dances");
+});
+
+test("release year search", async () => {
+  let items = await collection.search("1977", "release_year");
+  expect(items.length).toBe(36);
+  expect(items[0].title).toBe("Annie (A New Musical)");
 });
 
 test("empty search returns an empty list", async () => {

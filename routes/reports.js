@@ -65,6 +65,18 @@ const REPORTS = {
       GROUP BY artist
       ORDER BY count DESC, artist ASC
     `
+  },
+
+  "count_by_release_year": {
+    name: "Count by Release Year",
+    sql: `
+      SELECT
+        items.value ->> 'year' AS release_year,
+        COUNT(*) AS count
+      FROM items
+      GROUP BY release_year
+      ORDER BY release_year ASC
+    `
   }
 };
 
